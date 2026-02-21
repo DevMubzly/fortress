@@ -12,16 +12,16 @@ export default function Header() {
           </div>
 
           {/* Desktop navigation */}
-          {/* <nav className="hidden md:flex md:grow z-10">
+          <nav className="hidden md:flex md:grow z-10">
             <ul className="flex grow justify-end flex-wrap items-center gap-4">
-              <li>
+              {/* <li>
                 <Link
                   href="/pricing"
                   className="font-medium text-gray-600 hover:text-gray-900 flex items-center transition duration-150 ease-in-out"
                 >
                   Pricing
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link
                   href="/docs"
@@ -31,7 +31,7 @@ export default function Header() {
                 </Link>
               </li>
             </ul>
-          </nav> */}
+          </nav>
 
           {/* Contact Sales */}
           <div className="hidden md:flex items-center justify-end gap-3 z-10 pl-4">
