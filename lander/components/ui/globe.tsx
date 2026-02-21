@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { Color, Scene, PerspectiveCamera, Vector3 } from "three";
+import { useEffect, useRef } from "react";
+import { Color, Scene, PerspectiveCamera, Vector3, Group } from "three";
 import ThreeGlobe from "three-globe";
 import { useThree, Canvas, extend } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
@@ -62,38 +62,39 @@ interface WorldProps {
 
 export function Globe({ globeConfig, data }: WorldProps) {
   const globeRef = useRef<ThreeGlobe | null>(null);
-  const groupRef = useRef(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const groupRef = useRef<Group | null>(null);
 
   const defaultProps = {
-    pointSize: 1,
-    atmosphereColor: "#ffffff",
-    showAtmosphere: true,
-    atmosphereAltitude: 0.1,
-    polygonColor: "rgba(255,255,255,0.7)",
-    globeColor: "#1d072e",
-    emissive: "#000000",
-    emissiveIntensity: 0.1,
-    shininess: 0.9,
-    arcTime: 2000,
-    arcLength: 0.9,
-    rings: 1,
-    maxRings: 3,
-    ...globeConfig,
+    pointSize: globeConfig.pointSize ?? 1,
+    atmosphereColor: globeConfig.atmosphereColor ?? "#ffffff",
+    showAtmosphere: globeConfig.showAtmosphere ?? true,
+    atmosphereAltitude: globeConfig.atmosphereAltitude ?? 0.1,
+    polygonColor: globeConfig.polygonColor ?? "rgba(255,255,255,0.7)",
+    globeColor: globeConfig.globeColor ?? "#1d072e",
+    emissive: globeConfig.emissive ?? "#000000",
+    emissiveIntensity: globeConfig.emissiveIntensity ?? 0.1,
+    shininess: globeConfig.shininess ?? 0.9,
+    arcTime: globeConfig.arcTime ?? 2000,
+    arcLength: globeConfig.arcLength ?? 0.9,
+    rings: globeConfig.rings ?? 1,
+    maxRings: globeConfig.maxRings ?? 3,
+    ambientLight: globeConfig.ambientLight,
+    directionalLeftLight: globeConfig.directionalLeftLight,
+    directionalTopLight: globeConfig.directionalTopLight,
+    pointLight: globeConfig.pointLight,
   };
 
   // Initialize globe only once
   useEffect(() => {
     if (!globeRef.current && groupRef.current) {
       globeRef.current = new ThreeGlobe();
-      (groupRef.current as any).add(globeRef.current);
-      setIsInitialized(true);
+      groupRef.current.add(globeRef.current);
     }
   }, []);
 
   // Build material when globe is initialized or when relevant props change
   useEffect(() => {
-    if (!globeRef.current || !isInitialized) return;
+    if (!globeRef.current) return;
 
     const globeMaterial = globeRef.current.globeMaterial() as unknown as {
       color: Color;
@@ -101,21 +102,20 @@ export function Globe({ globeConfig, data }: WorldProps) {
       emissiveIntensity: number;
       shininess: number;
     };
-    globeMaterial.color = new Color(globeConfig.globeColor);
-    globeMaterial.emissive = new Color(globeConfig.emissive);
-    globeMaterial.emissiveIntensity = globeConfig.emissiveIntensity || 0.1;
-    globeMaterial.shininess = globeConfig.shininess || 0.9;
+    globeMaterial.color = new Color(defaultProps.globeColor);
+    globeMaterial.emissive = new Color(defaultProps.emissive);
+    globeMaterial.emissiveIntensity = defaultProps.emissiveIntensity;
+    globeMaterial.shininess = defaultProps.shininess;
   }, [
-    isInitialized,
-    globeConfig.globeColor,
-    globeConfig.emissive,
-    globeConfig.emissiveIntensity,
-    globeConfig.shininess,
+    defaultProps.globeColor,
+    defaultProps.emissive,
+    defaultProps.emissiveIntensity,
+    defaultProps.shininess,
   ]);
 
   // Build data when globe is initialized or when data changes
   useEffect(() => {
-    if (!globeRef.current || !isInitialized || !data) return;
+    if (!globeRef.current || !data) return;
 
     const arcs = data;
     const points: Array<{
@@ -170,7 +170,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
       .arcEndLng((d: Position) => d.endLng)
       .arcColor((e: Position) => e.color)
       .arcAltitude((e: Position) => e.arcAlt)
-      .arcStroke(() => [0.32, 0.28, 0.3][Math.round(Math.random() * 2)])
+      .arcStroke((e: Position) => [0.32, 0.28, 0.3][e.order % 3])
       .arcDashLength(defaultProps.arcLength)
       .arcDashInitialGap((e: Position) => e.order)
       .arcDashGap(15)
@@ -192,7 +192,6 @@ export function Globe({ globeConfig, data }: WorldProps) {
         (defaultProps.arcTime * defaultProps.arcLength) / defaultProps.rings,
       );
   }, [
-    isInitialized,
     data,
     defaultProps.pointSize,
     defaultProps.showAtmosphere,
@@ -207,7 +206,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
 
   // Handle rings animation with cleanup
   useEffect(() => {
-    if (!globeRef.current || !isInitialized || !data) return;
+    if (!globeRef.current || !data) return;
 
     const interval = setInterval(() => {
       if (!globeRef.current) return;
@@ -232,7 +231,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
     return () => {
       clearInterval(interval);
     };
-  }, [isInitialized, data]);
+  }, [data]);
 
   return <group ref={groupRef} />;
 }
