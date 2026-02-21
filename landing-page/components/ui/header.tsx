@@ -12,7 +12,7 @@ export default function Header() {
           </div>
 
           {/* Desktop navigation */}
-          <nav className="hidden md:flex md:grow z-10">
+          {/* <nav className="hidden md:flex md:grow z-10">
             <ul className="flex grow justify-end flex-wrap items-center gap-4">
               <li>
                 <Link
@@ -31,7 +31,7 @@ export default function Header() {
                 </Link>
               </li>
             </ul>
-          </nav>
+          </nav> */}
 
           {/* Contact Sales */}
           <div className="hidden md:flex items-center justify-end gap-3 z-10 pl-4">

@@ -7,7 +7,7 @@ export default function LargeTestimonial() {
       <div className="mx-auto max-w-2xl px-4 sm:px-6">
         <div className="py-12 md:py-20">
           <div className="space-y-3 text-center">
-            <div className="relative inline-flex">
+            {/* <div className="relative inline-flex">
               <svg
                 className="absolute -left-6 -top-2 -z-10"
                 width={40}
@@ -28,19 +28,17 @@ export default function LargeTestimonial() {
                 height={48}
                 alt="Large testimonial"
               />
-            </div>
+            </div> */}
             <p className="text-2xl font-bold text-gray-900">
-              “Fortress has completely transformed how we handle sensitive AI data. We can finally deploy large language models on-premise without worrying about{" "}
-              <em className="italic text-gray-500">data leakage</em>,
-              it's become our go-to platform for secure AI.”
+              Fortress is dedicated to providing <em className="italic text-gray-500">sovereign AI infrastructure</em> that empowers organizations to innovate securely.
             </p>
-            <div className="text-sm font-medium text-gray-500">
+            {/* <div className="text-sm font-medium text-gray-500">
               <span className="text-gray-700">Elena Rodriguez</span>{" "}
               <span className="text-gray-400">/</span>{" "}
               <a className="text-blue-500" href="#0">
                 CISO at TechGlobal
               </a>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
