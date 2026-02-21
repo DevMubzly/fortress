@@ -1,28 +1,21 @@
-import PageIllustration from "@/components/page-illustration";
 import GlobeDemo from "@/components/globe-demo";
 
 export default function HeroHome() {
   return (
     <section className="relative">
-      <PageIllustration />
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
         {/* Hero content */}
-        <div className="pb-12 pt-32 md:pb-20 md:pt-40">
+        <div className="pb-16 pt-40 md:pb-28 md:pt-52">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-8">
             {/* Left column: Text content */}
             <div className="text-center lg:text-left">
-              <div
-                className="mb-6 border-y [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] lg:[border-image:linear-gradient(to_right,--theme(--color-slate-300/.8),transparent)1]"
-                data-aos="zoom-y-out"
-              >
-              </div>
               <h1
-                className="mb-6 border-y text-5xl font-bold [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] lg:[border-image:linear-gradient(to_right,--theme(--color-slate-300/.8),transparent)1] md:text-6xl"
+                className="mb-6 text-5xl font-bold [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] lg:[border-image:linear-gradient(to_right,--theme(--color-slate-300/.8),transparent)1] md:text-6xl"
                 data-aos="zoom-y-out"
                 data-aos-delay={150}
               >
-                Take back control of <br className="max-lg:hidden" />
-                your AI infrastructure
+                Take back control of your AI
+                
               </h1>
               <div className="mx-auto max-w-3xl lg:mx-0">
                 <p
@@ -34,7 +27,7 @@ export default function HeroHome() {
                   full control over sensitive data. Deploy and manage AI systems
                   within your own data centers.
                 </p>
-                <div className="relative before:absolute before:inset-0 before:border-y before:[border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] lg:before:[border-image:linear-gradient(to_right,--theme(--color-slate-300/.8),transparent)1]">
+                <div className="relative before:absolute before:inset-0 before:[border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] lg:before:[border-image:linear-gradient(to_right,--theme(--color-slate-300/.8),transparent)1]">
                   <div
                     className="mx-auto max-w-xs sm:flex sm:max-w-none sm:justify-center lg:justify-start"
                     data-aos="zoom-y-out"

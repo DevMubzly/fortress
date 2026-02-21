@@ -395,7 +395,7 @@ export default function GlobeDemo() {
 
   return (
     <div className="relative w-full h-full min-h-[400px] md:min-h-[600px]">
-      <div className="absolute w-full bottom-0 inset-x-0 h-40 bg-gradient-to-b pointer-events-none select-none from-transparent dark:to-black to-white z-40" />
+      <div className="absolute w-full bottom-0 inset-x-0 h-40 bg-gradient-to-b pointer-events-none select-none z-40" />
       <div className="absolute w-full h-full z-10">
         <World data={sampleArcs} globeConfig={globeConfig} />
       </div>
