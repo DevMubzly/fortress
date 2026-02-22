@@ -20,6 +20,8 @@ export const metadata = {
   description: "Secure, on-premise AI deployment for regulated industries.",
 };
 
+import { ModalProvider } from "@/components/modal-context";
+
 export default function RootLayout({
   children,
 }: {
@@ -30,9 +32,11 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${persis.variable} bg-gray-50 font-inter tracking-tight text-gray-900 antialiased`}
       >
-        <div className="flex min-h-screen flex-col overflow-hidden supports-[overflow:clip]:overflow-clip">
-          {children}
-        </div>
+        <ModalProvider>
+          <div className="flex min-h-screen flex-col overflow-hidden supports-[overflow:clip]:overflow-clip">
+            {children}
+          </div>
+        </ModalProvider>
       </body>
     </html>
   );

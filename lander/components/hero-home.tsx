@@ -1,5 +1,6 @@
 import Image from "next/image";
 import * as motion from "motion/react-client"
+import OpenContactModalButton from "./open-contact-modal-button";
 
 export default function HeroHome() {
   return (
@@ -34,9 +35,8 @@ export default function HeroHome() {
                     data-aos="zoom-y-out"
                     data-aos-delay={450}
                   >
-                    <a
+                    <OpenContactModalButton
                       className="btn group mb-4 w-full bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
-                      href="/contact"
                     >
                       <span className="relative inline-flex items-center">
                         Contact Sales{" "}
@@ -44,7 +44,7 @@ export default function HeroHome() {
                           -&gt;
                         </span>
                       </span>
-                    </a>
+                    </OpenContactModalButton>
                     <a
                       className="btn w-full bg-white text-gray-800 shadow-sm hover:bg-gray-50 sm:ml-4 sm:w-auto"
                       href="/docs"

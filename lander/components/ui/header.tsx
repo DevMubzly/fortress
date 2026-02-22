@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Logo from "./logo";
+import OpenContactModalButton from "@/components/open-contact-modal-button";
 
 export default function Header() {
   return (
@@ -35,15 +36,14 @@ export default function Header() {
 
           {/* Contact Sales */}
           <div className="hidden md:flex items-center justify-end gap-3 z-10 pl-4">
-            <Link
-              href="/contact"
+            <OpenContactModalButton
               className="btn-sm bg-gray-800 text-gray-200 shadow-sm hover:bg-gray-900 group"
             >
               Contact Sales
               <span className="ml-2 tracking-normal text-blue-300 transition-transform group-hover:translate-x-0.5">
                 -&gt;
               </span>
-            </Link>
+            </OpenContactModalButton>
           </div>
         </div>
       </div>
