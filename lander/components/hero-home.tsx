@@ -1,4 +1,5 @@
-import GlobeDemo from "@/components/globe-demo";
+import Image from "next/image";
+import * as motion from "motion/react-client"
 
 export default function HeroHome() {
   return (
@@ -55,13 +56,25 @@ export default function HeroHome() {
               </div>
             </div>
             
-            {/* Right column: Globe */}
+            {/* Right column: Image */}
             <div
               className="relative mx-auto w-full max-w-3xl lg:mx-0"
               data-aos="zoom-y-out"
               data-aos-delay={600}
             >
-              <GlobeDemo />
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                className="w-full h-auto"
+              >
+                <Image
+                  src="/images/Visual22.webp"
+                  alt="Visual22"
+                  width={600}
+                  height={600}
+                  className="w-full h-auto"
+                />
+              </motion.div>
             </div>
           </div>
         </div>
