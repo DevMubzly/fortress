@@ -9,13 +9,10 @@ import {
   Bell, 
   LogOut,
   ChevronDown,
-  Sun,
-  Moon,
-  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
+  DropdownMenu, 
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
@@ -24,13 +21,15 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import Logo from "@/components/ui/logo";
 import { Toaster } from "@/components/ui/toaster";
+import { createClient } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
-  { path: '/vendor-tools/dashboard/organizations', label: 'Organizations', icon: Building2 },
-  { path: '/vendor-tools/dashboard/license-generator', label: 'License Generator', icon: FileKey },
-  { path: '/vendor-tools/dashboard/analytics', label: 'Global Analytics', icon: BarChart3 },
-  { path: '/vendor-tools/dashboard/leads', label: 'Lead Inbox', icon: Inbox },
-  { path: '/vendor-tools/dashboard/renewals', label: 'Renewal Alerts', icon: Bell },
+  { path: '/admin-portal/dashboard/analytics', label: 'Global Analytics', icon: BarChart3 },
+  { path: '/admin-portal/dashboard/organizations', label: 'Organizations', icon: Building2 },
+  { path: '/admin-portal/dashboard/leads', label: 'Lead Inbox', icon: Inbox },
+  { path: '/admin-portal/dashboard/renewals', label: 'Renewal Alerts', icon: Bell },
+  { path: '/admin-portal/dashboard/license-generator', label: 'License Generator', icon: FileKey },
 ];
 
 export default function VendorDashboardLayout({
@@ -40,14 +39,28 @@ export default function VendorDashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
+  const [userEmail, setUserEmail] = useState<string>("admin@company.com");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    });
   }, []);
 
-  const handleLogout = () => {
-    router.push("/vendor-tools");
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+    router.push("/admin-portal");
   };
 
   if (!mounted) return null;
@@ -74,8 +87,8 @@ export default function VendorDashboardLayout({
                     variant={isActive ? "secondary" : "ghost"}
                     size="sm"
                     className={cn(
-                      "gap-2 text-gray-600",
-                      isActive && "bg-blue-50 text-blue-700 font-medium"
+                      "gap-2 text-gray-600 transition-colors",
+                      isActive && "bg-blue-50 text-blue-700 font-medium hover:bg-blue-100"
                     )}
                     onClick={() => router.push(item.path)}
                   >
@@ -89,15 +102,29 @@ export default function VendorDashboardLayout({
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2 text-gray-700">
-                  admin@company.com
+                <Button variant="ghost" size="sm" className="gap-2 text-gray-700 hover:bg-gray-100">
+                  {userEmail}
                   <ChevronDown className="w-3 h-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-700 focus:bg-red-50">
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer">
                     <LogOut className="w-4 h-4 mr-2" />
                     Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 overflow-auto bg-gray-50/50">
+        {children}
+      </main>
+      <Toaster />
+    </div>
+  );
+}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

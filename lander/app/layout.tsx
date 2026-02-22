@@ -21,6 +21,7 @@ export const metadata = {
 };
 
 import { ModalProvider } from "@/components/modal-context";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function RootLayout({
   children,
@@ -36,6 +37,7 @@ export default function RootLayout({
           <div className="flex min-h-screen flex-col overflow-hidden supports-[overflow:clip]:overflow-clip">
             {children}
           </div>
+          <Toaster />
         </ModalProvider>
       </body>
     </html>
