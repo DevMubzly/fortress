@@ -119,21 +119,9 @@ export default function VendorDashboardLayout({
       </header>
 
       <main className="flex-1 overflow-auto bg-gray-50/50">
-        {children}
-      </main>
-      <Toaster />
-    </div>
-  );
-}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+        <div className="p-6 max-w-7xl mx-auto w-full">
+            {children}
         </div>
-      </header>
-
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
-        {children}
       </main>
       <Toaster />
     </div>

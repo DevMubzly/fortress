@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { X, ArrowRight, ArrowLeft, Check, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useModal } from "./modal-context";
+import { createClient } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 type FormData = {
   name: string;
@@ -37,6 +39,7 @@ const SECTORS = [
 
 export default function ContactSalesModal() {
   const { isOpen, closeModal } = useModal();
+  const { toast } = useToast();
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<FormData>(INITIAL_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,13 +79,44 @@ export default function ContactSalesModal() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const supabase = createClient();
+
+    // Split name
+    const nameParts = formData.name.trim().split(" ");
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+    
+    const { error } = await supabase.from('leads').insert({
+        first_name: firstName,
+        last_name: lastName,
+        work_email: formData.email,
+        company_name: formData.organization,
+        company_size: null, // Not collected yet
+        country: null, // Not collected yet
+        message: formData.useCase,
+        status: 'new',
+        role: formData.role,
+        phone: formData.phone,
+        sector: formData.sector
+    });
+
+    if (error) {
+        console.error("Error submitting lead:", error);
+        toast({
+            title: "Submission Failed",
+            description: "There was an error submitting your request. Please try again.",
+            variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+    }
+
     setIsSubmitting(false);
     setIsSubmitted(true);
+    // Simulate delay for UI effect before closing
     setTimeout(() => {
       closeModal();
-    }, 2000);
+    }, 3000);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

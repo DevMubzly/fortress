@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Bell, Calendar, BadgeAlert, CheckCircle2, AlertTriangle, ArrowUpRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import {
@@ -14,6 +13,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { createClient } from "@/lib/supabase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Renewal {
   id: string;
@@ -22,28 +23,93 @@ interface Renewal {
   expiryDate: string;
   daysRemaining: number;
   value: string;
+  numericValue: number;
   status: 'critical' | 'warning' | 'healthy' | 'renewed';
   autoRenew: boolean;
 }
 
-const mockRenewals: Renewal[] = [
-  { id: '1', customer: 'Stark Industries', plan: 'Enterprise', expiryDate: '2024-03-20', daysRemaining: 5, value: '$120,000', status: 'critical', autoRenew: true },
-  { id: '2', customer: 'Wayne Enterprises', plan: 'Enterprise', expiryDate: '2024-04-05', daysRemaining: 21, value: '$95,000', status: 'warning', autoRenew: false },
-  { id: '3', customer: 'Cyberdyne Systems', plan: 'Growth', expiryDate: '2024-05-12', daysRemaining: 58, value: '$24,000', status: 'healthy', autoRenew: true },
-  { id: '4', customer: 'Tyrell Corp', plan: 'Enterprise', expiryDate: '2024-03-18', daysRemaining: 3, value: '$150,000', status: 'critical', autoRenew: false },
-  { id: '5', customer: 'Oscorp', plan: 'Growth', expiryDate: '2024-04-15', daysRemaining: 31, value: '$30,000', status: 'warning', autoRenew: true },
-];
-
 export default function RenewalAlertsPage() {
   const { toast } = useToast();
-  const [renewals, setRenewals] = useState<Renewal[]>(mockRenewals);
+  const [renewals, setRenewals] = useState<Renewal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
+
+  const fetchRenewals = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('*')
+      .not('renewal_date', 'is', null)
+      .order('renewal_date', { ascending: true });
+
+    // Handle null data or error safely
+    if (error) {
+      console.error("Supabase Error:", error);
+      toast({
+        title: "Error fetching renewals",
+        description: error.message || "Unknown database error",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return; 
+    }
+    
+    if (data) {
+        const mappedRenewals: Renewal[] = data.map((org: any) => {
+            const expiryDate = new Date(org.renewal_date);
+            const today = new Date();
+            const diffTime = expiryDate.getTime() - today.getTime();
+            const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            let status: Renewal['status'] = 'healthy';
+            if (daysRemaining < 30) status = 'critical';
+            else if (daysRemaining < 90) status = 'warning';
+
+            // Mocking value based on plan, using number for sum calculation
+            let numericValue = 0;
+            if (org.plan === 'enterprise') numericValue = 120000;
+            else if (org.plan === 'growth') numericValue = 48000;
+            else if (org.plan === 'starter') numericValue = 24000;
+
+            return {
+                id: org.id,
+                customer: org.name,
+                plan: org.plan,
+                expiryDate: expiryDate.toLocaleDateString(),
+                daysRemaining,
+                value: `$${numericValue.toLocaleString()}`,
+                numericValue,
+                status,
+                autoRenew: Math.random() > 0.5 // Mock auto-renew status
+            };
+        });
+        setRenewals(mappedRenewals);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchRenewals();
+  }, []);
 
   const handleSendReminder = (id: string, customer: string) => {
+    // In a real app, this would trigger an email via backend
     toast({
       title: "Reminder Sent",
       description: `Renewal notice sent to ${customer}.`,
     });
   };
+
+  const criticalCount = renewals.filter(r => r.status === 'critical').length;
+  const warningCount = renewals.filter(r => r.status === 'warning').length;
+  // Calculate total value at risk (sum of numeric values for critical/warning)
+  const totalValueRisk = renewals
+    .filter(r => r.status === 'critical' || r.status === 'warning')
+    .reduce((acc, curr) => acc + curr.numericValue, 0);
+
+  // Calculate auto-renew percentage
+  const autoRenewCount = renewals.filter(r => r.autoRenew).length;
+  const autoRenewPercentage = renewals.length > 0 ? Math.round((autoRenewCount / renewals.length) * 100) : 0;
 
   return (
     <div className="space-y-6">
@@ -52,41 +118,36 @@ export default function RenewalAlertsPage() {
           <h2 className="text-2xl font-bold tracking-tight text-gray-900">Renewal Alerts</h2>
           <p className="text-gray-500">Upcoming contract expirations and subscription renewals</p>
         </div>
+        <Button variant="outline" size="sm" onClick={fetchRenewals}>
+            Refresh
+        </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-red-50 border-red-100 shadow-sm">
-          <CardContent className="p-4 flex flex-col gap-1">
-             <span className="text-sm font-medium text-red-600 flex items-center gap-2">
-                <BadgeAlert className="w-4 h-4" /> Critical ({"<"} 7 days)
-             </span>
-             <span className="text-2xl font-bold text-red-900">
-                {renewals.filter(r => r.status === 'critical').length}
-             </span>
-          </CardContent>
-        </Card>
-        <Card className="bg-yellow-50 border-yellow-100 shadow-sm">
-          <CardContent className="p-4 flex flex-col gap-1">
-             <span className="text-sm font-medium text-yellow-600 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" /> Warning ({"<"} 30 days)
-             </span>
-             <span className="text-2xl font-bold text-yellow-900">
-                {renewals.filter(r => r.status === 'warning').length}
-             </span>
-          </CardContent>
-        </Card>
-        <Card className="bg-white border-gray-200 shadow-sm">
-             <CardContent className="p-4 flex flex-col gap-1">
-                 <span className="text-sm font-medium text-gray-600">Total Value risk</span>
-                 <span className="text-2xl font-bold text-gray-900">$215,000</span>
-             </CardContent>
-        </Card>
-        <Card className="bg-white border-gray-200 shadow-sm">
-             <CardContent className="p-4 flex flex-col gap-1">
-                 <span className="text-sm font-medium text-gray-600">Auto-Renew Eligible</span>
-                 <span className="text-2xl font-bold text-gray-900">60%</span>
-             </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
+        <div className="p-4 text-center border-r last:border-0 border-gray-100">
+             <p className="text-xs text-red-500 uppercase tracking-wide mb-1 font-semibold">Critical ({"<"} 30 days)</p>
+             <p className="text-3xl font-bold text-gray-900">
+                {isLoading ? <Skeleton className="h-8 w-8 mx-auto" /> : criticalCount}
+             </p>
+        </div>
+        <div className="p-4 text-center border-r last:border-0 border-gray-100">
+             <p className="text-xs text-yellow-500 uppercase tracking-wide mb-1 font-semibold">Warning ({"<"} 90 days)</p>
+             <p className="text-3xl font-bold text-gray-900">
+                {isLoading ? <Skeleton className="h-8 w-8 mx-auto" /> : warningCount}
+             </p>
+        </div>
+        <div className="p-4 text-center border-r last:border-0 border-gray-100">
+             <p className="text-xs text-gray-500 uppercase tracking-wide mb-1 font-semibold">Total Value Risk</p>
+             <p className="text-3xl font-bold text-gray-900">
+                {isLoading ? <Skeleton className="h-8 w-24 mx-auto" /> : `$${(totalValueRisk / 1000).toFixed(0)}k`}
+             </p>
+        </div>
+        <div className="p-4 text-center">
+             <p className="text-xs text-gray-500 uppercase tracking-wide mb-1 font-semibold">Auto-Renew Eligible</p>
+             <p className="text-3xl font-bold text-gray-900">
+                {isLoading ? <Skeleton className="h-8 w-12 mx-auto" /> : `${autoRenewPercentage}%`}
+             </p>
+        </div>
       </div>
 
       <Card className="border-gray-200 shadow-sm">
@@ -107,16 +168,30 @@ export default function RenewalAlertsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {renewals.map((renewal) => (
+              {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell><Skeleton className="h-6 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
+              ) : renewals.length > 0 ? (
+                renewals.map((renewal) => (
                 <TableRow key={renewal.id}>
                   <TableCell className="font-medium text-gray-900">{renewal.customer}</TableCell>
                   <TableCell>
-                     <Badge variant="outline" className="font-normal text-gray-600">{renewal.plan}</Badge>
+                     <Badge variant="outline" className="font-normal text-gray-600 capitalize">{renewal.plan}</Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
                         <span className="text-sm text-gray-900">{renewal.expiryDate}</span>
-                        <span className="text-xs text-gray-500">{renewal.daysRemaining} days left</span>
+                        <span className={`text-xs ${renewal.daysRemaining < 0 ? 'text-red-500 font-bold' : 'text-gray-500'}`}>
+                            {renewal.daysRemaining < 0 ? `${Math.abs(renewal.daysRemaining)} days overdue` : `${renewal.daysRemaining} days left`}
+                        </span>
                     </div>
                   </TableCell>
                   <TableCell className="font-medium text-gray-700">{renewal.value}</TableCell>
@@ -131,18 +206,25 @@ export default function RenewalAlertsPage() {
                          )}
                          {renewal.autoRenew && (
                              <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded flex items-center gap-1">
-                                 <CheckCircle2 className="w-3 h-3" /> Auto
+                                 Auto
                              </span>
                          )}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={() => handleSendReminder(renewal.id, renewal.customer)}>
-                        Send Reminder <ArrowUpRight className="w-3 h-3 ml-1" />
+                        Send Reminder
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
+              ))
+              ) : (
+                  <TableRow>
+                      <TableCell colSpan={6} className="text-center text-gray-500 py-6">
+                          No upcoming renewals found.
+                      </TableCell>
+                  </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
