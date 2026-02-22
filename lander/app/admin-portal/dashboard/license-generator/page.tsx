@@ -384,7 +384,7 @@ export default function LicenseGeneratorPage() {
                   <CardContent className="space-y-4">
                       {result ? (
                           <>
-                            <div className="p-3 bg-slate-800 rounded-md border border-slate-700 font-mono text-xs break-all max-h-[300px] overflow-y-auto">
+                            <div className="p-3 bg-slate-800 rounded-md border border-slate-700 font-mono text-xs break-all max-h-[300px] overflow-y-auto scrollbar-thin">
                                 {result.key}
                             </div>
                             <div className="space-y-2">

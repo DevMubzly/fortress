@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+passlib[bcrypt]
+python-multipart
+python-jose[cryptography]
+httpx
+pydantic-settings
+emoji
