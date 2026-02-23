@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Add parent directory to path so 'backend' package can be imported when running from 'backend' dir
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.routers import auth, setup, system
