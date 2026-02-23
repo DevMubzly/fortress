@@ -21,7 +21,17 @@ class UserService:
         conn.commit()
         conn.close()
         
-        return User(**user_data.dict(exclude={"password"}), id=user_id, active=True, must_change_password=False)
+        # When creating the User object from pydantic, we need to supply all required fields.
+        # created_at is handled by DB DEFAULT CURRENT_TIMESTAMP, but Pydantic doesn't know that unless we read it back or supply it.
+        # Simplest is to supply current time for the response object.
+        return User(
+            **user_data.dict(exclude={"password"}), 
+            id=user_id, 
+            active=True, 
+            must_change_password=False,
+            created_at=datetime.utcnow(),
+            last_login=None
+        )
 
     def authenticate_user(self, username: str, password: str) -> Optional[User]:
         conn = get_db_connection()
@@ -40,6 +50,43 @@ class UserService:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        conn.close()
+        
+        if row:
+            return User(**row)
+        return None
+
+    def get_user_by_username(self, username: str) -> Optional[User]:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return User(**row)
+        return None
+
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return User(**row)
+        return None
+
+    def update_user_password(self, username: str, password: str) -> Optional[User]:
+        hashed_password = get_password_hash(password)
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET password_hash = ? WHERE username = ? OR email = ?", (hashed_password, username, username))
+        conn.commit()
+        
+        # Return updated user. We need a new cursor because the previous one was used for update? No, but let's clear it.
+        # Actually standard practice is to reuse or just execute.
+        cursor.execute("SELECT * FROM users WHERE username = ? OR email = ?", (username, username))
         row = cursor.fetchone()
         conn.close()
         

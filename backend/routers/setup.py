@@ -53,6 +53,21 @@ def upload_license(license_data: LicenseUpload):
 @router.post("/admin")
 def create_admin(user: UserCreate):
     try:
+        # Check if user exists (by email OR username) to allow retry
+        # This handles the case where the user refreshed or previous step failed
+        # We check both email and username as either could trigger UNIQUE constraint
+        existing_user_email = user_service.get_user_by_email(user.email)
+        existing_user_username = user_service.get_user_by_username(user.username)
+        
+        if existing_user_email:
+             # Update password for existing user intended to be admin
+             user_service.update_user_password(existing_user_email.username, user.password)
+             return {"user": existing_user_email}
+
+        if existing_user_username:
+             user_service.update_user_password(existing_user_username.username, user.password)
+             return {"user": existing_user_username}
+
         new_user = user_service.create_admin_user(user)
         return {"user": new_user}
     except Exception as e:

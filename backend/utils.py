@@ -2,6 +2,7 @@ import bcrypt
 from datetime import datetime, timedelta
 import secrets
 from backend.config import settings
+from cryptography.fernet import Fernet
 
 cipher_suite = Fernet(settings.ENCRYPTION_KEY)  # Handle key generation elsewhere if needed
 
