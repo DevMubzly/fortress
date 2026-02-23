@@ -1,29 +1,25 @@
 import bcrypt
-from passlib.context import CryptContext
-from cryptography.fernet import Fernet
 from datetime import datetime, timedelta
 import secrets
 from backend.config import settings
 
-# Fix for passlib 1.7.4 compatibility with bcrypt >= 4.0.0
-# passlib attempts to access bcrypt.__about__ which was removed in bcrypt 4.0.0
-if not hasattr(bcrypt, '__about__'):
-    try:
-        class BcryptAbout:
-            pass
-        bcrypt.__about__ = BcryptAbout()
-        bcrypt.__about__.__version__ = bcrypt.__version__
-    except Exception:
-        pass
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 cipher_suite = Fernet(settings.ENCRYPTION_KEY)  # Handle key generation elsewhere if needed
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
+def get_password_hash(password: str) -> str:
+    # Ensure password is encoded to bytes
+    password_bytes = password.encode('utf-8')
+    # Generate salt and hash
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    try:
+        plain_bytes = plain_password.encode('utf-8')
+        hashed_bytes = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(plain_bytes, hashed_bytes)
+    except Exception:
+        return False
 
 def encrypt_value(value: str) -> str:
     return cipher_suite.encrypt(value.encode()).decode()
