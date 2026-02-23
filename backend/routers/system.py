@@ -61,21 +61,8 @@ class LicenseUpdate(BaseModel):
 @router.post("/license")
 def update_license(data: LicenseUpdate):
     try:
-        decoded_bytes = base64.b64decode(data.file_content)
-        license_str = decoded_bytes.decode('utf-8')
-        license_full_obj = json.loads(license_str)
-        
-        # Verify signature
-        payload = license_service.verify_license_signature(license_full_obj)
-             
-        # Check expiry
-        if payload.get("validUntil"):
-            expires_at = datetime.fromisoformat(payload["validUntil"].replace('Z', '+00:00'))
-            if expires_at < datetime.utcnow():
-                raise HTTPException(status_code=400, detail="License has already expired")
-
-        # Save
-        license_service.save_license(payload, license_str)
+        # Verify, parse, check expiry, and save new license
+        payload = license_service.process_license_content(data.file_content)
         
         return {"status": "updated", "organization": payload.get("organization")}
     except Exception as e:

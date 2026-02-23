@@ -1,8 +1,20 @@
+import bcrypt
 from passlib.context import CryptContext
 from cryptography.fernet import Fernet
 from datetime import datetime, timedelta
 import secrets
 from backend.config import settings
+
+# Fix for passlib 1.7.4 compatibility with bcrypt >= 4.0.0
+# passlib attempts to access bcrypt.__about__ which was removed in bcrypt 4.0.0
+if not hasattr(bcrypt, '__about__'):
+    try:
+        class BcryptAbout:
+            pass
+        bcrypt.__about__ = BcryptAbout()
+        bcrypt.__about__.__version__ = bcrypt.__version__
+    except Exception:
+        pass
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 cipher_suite = Fernet(settings.ENCRYPTION_KEY)  # Handle key generation elsewhere if needed

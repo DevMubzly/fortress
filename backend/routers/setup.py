@@ -20,8 +20,15 @@ class SetupStatus(BaseModel):
 @router.get("/status", response_model=SetupStatus)
 def get_setup_status():
     status = config_service.get_setup_status()
-    # Step logic could be more complex but keeping it simple
-    return {"completed": status, "step": 1 if not status else 5}
+    if status is True:
+         return {"completed": True, "step": 5}
+
+    step = 1
+    # Check if license exists
+    if license_service.get_license():
+        step = 2
+
+    return {"completed": status, "step": step}
 
 class LicenseUpload(BaseModel):
     file_content: str  # Base64 encoded
@@ -29,35 +36,18 @@ class LicenseUpload(BaseModel):
 @router.post("/license")
 def upload_license(license_data: LicenseUpload):
     try:
-        decoded_bytes = base64.b64decode(license_data.file_content)
-        license_str = decoded_bytes.decode('utf-8')
-        license_full_obj = json.loads(license_str)
-        
-        # Verify signature and get payload
-        try:
-             payload = license_service.verify_license_signature(license_full_obj)
-        except ValueError as e:
-             raise HTTPException(status_code=400, detail=str(e))
-             
-        # Validate logic (expiry etc)
-        # Note: We pass a simple dict to validate_license, but validate_license currently fetches from DB!
-        # We need validation OF THE PAYLOAD before saving.
-        # But license_service.validate_license is designed to check the *active* license against system constraints.
-        
-        # Simple check on payload expires_at
-        if payload.get("validUntil"):
-            expires_at = datetime.fromisoformat(payload["validUntil"].replace('Z', '+00:00'))
-            if expires_at < datetime.utcnow():
-                raise HTTPException(status_code=400, detail="License has already expired")
-
-        # Save verified payload and the raw signed content
-        license_service.save_license(payload, license_str)
+        # Process the uploaded license content (base64 encoded)
+        # Verify signature, check expiry, and save to DB
+        payload = license_service.process_license_content(license_data.file_content)
         
         return {"item": payload}
     except Exception as e:
         # Check if it was our HTTPException
         if isinstance(e, HTTPException):
             raise e
+        print(f"Error processing license upload: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=400, detail=f"License processing failed: {str(e)}")
 
 @router.post("/admin")
@@ -66,6 +56,9 @@ def create_admin(user: UserCreate):
         new_user = user_service.create_admin_user(user)
         return {"user": new_user}
     except Exception as e:
+        print(f"Error creating admin: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=400, detail=str(e))
 
 class SSOConfig(BaseModel):

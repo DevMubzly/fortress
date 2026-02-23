@@ -1,0 +1,45 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment and sensitive files
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# IDEs and Editors
+.vscode/
+.idea/
+
+# Local databases
+*.sqlite
+*.db
+backend/data/
+data/
+
+# Debug and Test Scripts (Root level)
+debug_api_upload.py
+debug_node_sign.js
+debug_python_verify.py
+debug_verify_license.py
+gen_test_license.js
+sign_pss.js
+verify_pss.py
+verify_test_license.py
+
+# Test License Files
+test_license.json
+test_license.lic
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

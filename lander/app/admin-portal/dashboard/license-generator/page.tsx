@@ -339,7 +339,7 @@ export default function LicenseGeneratorPage() {
 
                       <div className="space-y-2">
                           <Label>Internal Notes</Label>
-                          <Textarea 
+                          <Textarea
                             placeholder="Reason for issuance, special terms..." 
                             value={formData.notes}
                             onChange={(e) => setFormData({...formData, notes: e.target.value})}
