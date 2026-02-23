@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { X, ArrowRight, ArrowLeft, Check, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useModal } from "./modal-context";
-import { createClient } from "@/lib/supabase";
+import { submitContact } from "@/app/actions/contact";
 import { useToast } from "@/hooks/use-toast";
 
 type FormData = {
@@ -79,29 +79,12 @@ export default function ContactSalesModal() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    const supabase = createClient();
-
-    // Split name
-    const nameParts = formData.name.trim().split(" ");
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
     
-    const { error } = await supabase.from('leads').insert({
-        first_name: firstName,
-        last_name: lastName,
-        work_email: formData.email,
-        company_name: formData.organization,
-        company_size: null, // Not collected yet
-        country: null, // Not collected yet
-        message: formData.useCase,
-        status: 'new',
-        role: formData.role,
-        phone: formData.phone,
-        sector: formData.sector
-    });
+    // Call server action to send email (Resend) and save to DB
+    const result = await submitContact(formData);
 
-    if (error) {
-        console.error("Error submitting lead:", error);
+    if (!result.success) {
+        console.error("Error submitting lead:", result.error);
         toast({
             title: "Submission Failed",
             description: "There was an error submitting your request. Please try again.",

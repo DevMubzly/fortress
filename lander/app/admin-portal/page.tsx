@@ -469,7 +469,7 @@ export default function VendorLoginPage() {
         <div className="w-full max-w-sm space-y-8">
             <div className="text-center space-y-2">
                 <div className="mx-auto flex flex-col items-center justify-center mb-8">
-                    <div className="p-3 bg-blue-50 rounded-xl mb-4 ring-1 ring-blue-100">
+                    <div className="p-3">
                       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 28 28">
                         <path
                           className="fill-blue-600"

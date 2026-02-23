@@ -7,6 +7,10 @@ import aiohttp
 import json
 import uuid
 from datetime import datetime
+from pydantic import BaseModel
+
+class ConversationTitleUpdate(BaseModel):
+    title: str
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 OLLAMA_BASE_URL = "http://localhost:11434"
@@ -124,8 +128,22 @@ async def delete_history(conversation_id: str, current_user: User = Depends(deps
     cursor = conn.cursor()
     cursor.execute("DELETE FROM conversations WHERE id = ? AND user_id = ?", (conversation_id, current_user.id))
     if cursor.rowcount == 0:
+        cursor.close()
         conn.close()
         raise HTTPException(status_code=404, detail="Conversation not found")
     conn.commit()
     conn.close()
     return {"status": "deleted"}
+
+@router.patch("/history/{conversation_id}")
+async def update_conversation_title(conversation_id: str, update: ConversationTitleUpdate, current_user: User = Depends(deps.get_current_user)):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE conversations SET title = ?, updated_at = ? WHERE id = ? AND user_id = ?",
+                   (update.title, datetime.utcnow(), conversation_id, current_user.id))
+    if cursor.rowcount == 0:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    conn.commit()
+    conn.close()
+    return {"status": "updated", "title": update.title}

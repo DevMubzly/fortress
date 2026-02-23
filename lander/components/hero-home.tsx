@@ -5,7 +5,7 @@ import OpenContactModalButton from "./open-contact-modal-button";
 export default function HeroHome() {
   return (
     <section className="relative">
-      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
+      <div className="mx-auto max-w-screen-2xl px-8 sm:px-12 lg:px-20">
         {/* Hero content */}
         <div className="pb-16 pt-40 md:pb-28 md:pt-52">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-8">
