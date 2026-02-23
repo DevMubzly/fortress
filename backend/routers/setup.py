@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from backend.services.config_service import ConfigService
@@ -29,15 +30,34 @@ class LicenseUpload(BaseModel):
 def upload_license(license_data: LicenseUpload):
     try:
         decoded_bytes = base64.b64decode(license_data.file_content)
-        license_json = json.loads(decoded_bytes.decode('utf-8'))
+        license_str = decoded_bytes.decode('utf-8')
+        license_full_obj = json.loads(license_str)
         
-        # Validation here (signature verification skipped for brevity)
-        if not license_service.validate_license(license_json):
-             raise HTTPException(status_code=400, detail="Invalid license")
+        # Verify signature and get payload
+        try:
+             payload = license_service.verify_license_signature(license_full_obj)
+        except ValueError as e:
+             raise HTTPException(status_code=400, detail=str(e))
              
-        license_service.save_license(license_json)
-        return {"item": license_json}
+        # Validate logic (expiry etc)
+        # Note: We pass a simple dict to validate_license, but validate_license currently fetches from DB!
+        # We need validation OF THE PAYLOAD before saving.
+        # But license_service.validate_license is designed to check the *active* license against system constraints.
+        
+        # Simple check on payload expires_at
+        if payload.get("validUntil"):
+            expires_at = datetime.fromisoformat(payload["validUntil"].replace('Z', '+00:00'))
+            if expires_at < datetime.utcnow():
+                raise HTTPException(status_code=400, detail="License has already expired")
+
+        # Save verified payload and the raw signed content
+        license_service.save_license(payload, license_str)
+        
+        return {"item": payload}
     except Exception as e:
+        # Check if it was our HTTPException
+        if isinstance(e, HTTPException):
+            raise e
         raise HTTPException(status_code=400, detail=f"License processing failed: {str(e)}")
 
 @router.post("/admin")

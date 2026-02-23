@@ -26,7 +26,8 @@ export async function generateLicenseAction(data: any) {
     // Combine payload and signature
     const licenseData = {
       payload,
-      signature
+      signature,
+      signedPayload: payloadString // Ensure verify can use exact string
     };
 
     // Base64 encode the whole thing to create the license key
