@@ -83,6 +83,69 @@ def init_db():
         )
     ''')
 
+    # Create api_keys table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS api_keys (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            key_hash TEXT UNIQUE,
+            prefix TEXT,
+            name TEXT,
+            allowed_models TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            expires_at TEXT,
+            last_used_at TEXT,
+            is_active INTEGER DEFAULT 1,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    ''')
+
+    # Create request_logs table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS request_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            key_id INTEGER,
+            model TEXT,
+            prompt_tokens INTEGER,
+            completion_tokens INTEGER,
+            total_tokens INTEGER,
+            latency_ms REAL,
+            status_code INTEGER,
+            error_msg TEXT,
+            ip_address TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL,
+            FOREIGN KEY(key_id) REFERENCES api_keys(id) ON DELETE SET NULL
+        )
+    ''')
+
+    # Create conversations table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS conversations (
+            id TEXT PRIMARY KEY,
+            user_id INTEGER,
+            title TEXT,
+            model TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    ''')
+    
+    # Create messages table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS messages (
+            id TEXT PRIMARY KEY,
+            conversation_id TEXT,
+            role TEXT,
+            content TEXT,
+            tokens INTEGER,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
+        )
+    ''')
+
     conn.commit()
     conn.close()
 

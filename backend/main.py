@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import auth, setup, system
+from backend.routers import auth, setup, system, models, apikeys, stats, users, chat
 from backend.database import init_db
 
 # Initialize database
@@ -26,6 +26,11 @@ app.add_middleware(
 app.include_router(setup.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(system.router, prefix="/api")
+app.include_router(models.router, prefix="/api")
+app.include_router(apikeys.router, prefix="/api")
+app.include_router(stats.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
+app.include_router(chat.router, prefix="/api")
 
 @app.get("/")
 def read_root():

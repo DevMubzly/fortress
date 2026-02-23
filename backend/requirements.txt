@@ -7,3 +7,5 @@ python-jose[cryptography]
 httpx
 pydantic-settings
 emoji
+psutil
+aiohttp

@@ -197,16 +197,16 @@ export default function LicenseGeneratorPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-[1240px] mx-auto space-y-8">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-gray-900">License Generator</h2>
         <p className="text-gray-500">Create cryptographically signed license keys for clients.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Form Side */}
-          <div className="md:col-span-3 space-y-6">
-              <Card>
+          <div className="lg:col-span-7 space-y-6">
+              <Card className="h-full">
                   <CardHeader>
                       <CardTitle>Client Details</CardTitle>
                       <CardDescription>Configure the license parameters.</CardDescription>
@@ -375,7 +375,7 @@ export default function LicenseGeneratorPage() {
           </div>
 
           {/* Result Side */}
-          <div className="md:col-span-2 space-y-6">
+          <div className="lg:col-span-5 space-y-6">
               <Card className="h-full bg-slate-900 text-white border-slate-800">
                   <CardHeader>
                       <CardTitle className="text-slate-100">License Output</CardTitle>

@@ -113,10 +113,24 @@ class UserService:
         conn.commit()
         conn.close()
 
-    def deactivate_user(self, user_id: int):
+    def update_user_status(self, user_id: int, active: bool):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("UPDATE users SET active = 0 WHERE id = ?", (user_id,))
+        cursor.execute("UPDATE users SET active = ? WHERE id = ?", (1 if active else 0, user_id))
+        conn.commit()
+        conn.close()
+
+    def update_user_role(self, user_id: int, role: str):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET role = ? WHERE id = ?", (role, user_id))
+        conn.commit()
+        conn.close()
+
+    def delete_user(self, user_id: int):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
         conn.commit()
         conn.close()
 
