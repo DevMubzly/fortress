@@ -1,5 +1,7 @@
 'use server'
 
+export const runtime = 'edge'
+
 import { createClient } from '@/lib/supabase'
 import { Resend } from 'resend'
 
