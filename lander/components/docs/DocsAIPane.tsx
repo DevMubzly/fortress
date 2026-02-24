@@ -199,16 +199,50 @@ export function DocsAIPane() {
                 </div>
             ))}
 
-            {/* Streaming Message (Assistant only) */}
-            {(isLoading && completion) && (
+            {/* Error Message */}
+            {error && (
                 <div className="flex w-full gap-2 mb-4 justify-start">
+                    <div className="bg-red-50 border border-red-200 p-2 rounded-lg shrink-0 h-8 w-8 flex items-center justify-center shadow-sm text-red-500">
+                        <X className="h-4 w-4" />
+                    </div>
+                    <div className="flex flex-col max-w-[80%] items-start">
+                        <span className="text-xs font-medium text-red-500 mb-1 px-1">Error</span>
+                        <div className="text-sm p-3 rounded-2xl shadow-sm border bg-red-50 border-red-100 text-red-800 rounded-tl-sm">
+                            Sorry, something went wrong. Please try again later.
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {(isLoading || completion.length > 0) && ( // Show if loading OR if we have completion content (even if loading finished)
+                // BUT only show this block if we actually have completion content to show, OR if we want to show loading state inside? 
+                // Ah, the logic was (isLoading && completion). 
+                // If loading finished, completion is non-empty, but isLoading is false. Wait.
+                // If loading finished, the message is added to `messages` state in `onFinish`.
+                // So this block is ONLY for the ephemeral streaming message.
+                
+                // Correction: The `onFinish` handler adds the message to `messages`. 
+                // While streaming, `messages` does NOT contain the current response yet.
+                // So we need to display `completion` while streaming.
+                // Once finished, `onFinish` runs, adds to `messages`, and `completion` resets? 
+                // No, `useCompletion` keeps the last completion until next call? 
+                
+                // Actually `useCompletion` does NOT clear completion automatically on finish.
+                // But `onFinish` appends it to `messages`.
+                // So we have a duplicate if we render `completion` after finish.
+                
+                // Fix: Only render `completion` when `isLoading` is true AND `completion` has content.
+                // Once `isLoading` becomes false (finished), `onFinish` runs, updates `messages`, and we stop rendering this block.
+                
+                (isLoading && completion.length > 0) && (
+                <div className="flex w-full gap-2 mb-4 justify-start animate-fade-in">
                   <div className="bg-white border p-2 rounded-lg shrink-0 h-8 w-8 flex items-center justify-center shadow-sm">
                     <Sparkles className="h-4 w-4 text-blue-600 animate-pulse" />
                   </div>
                   <div className="flex flex-col max-w-[80%] items-start">
                     <span className="text-xs font-medium text-muted-foreground mb-1 px-1">Fortress</span>
                     <div className="text-sm p-3 rounded-2xl shadow-sm border bg-white rounded-tl-sm text-foreground">
-                        <div className="prose prose-sm dark:prose-invert max-w-none break-words leading-relaxed">
+                        <div className="prose prose-sm dark:prose-invert max-w-none break-words leading-relaxed text-inherit">
                             {completion.split('\n').map((line, i) => (
                                 <p key={i} className="mb-0 min-h-[1em]">{line}</p>
                             ))}
@@ -216,11 +250,11 @@ export function DocsAIPane() {
                     </div>
                   </div>
                 </div>
-            )}
+            ))}
             
             {/* Loading Indicator (Waiting for start) */}
-            {isLoading && !completion && (
-                 <div className="flex w-full gap-2 mb-4 justify-start">
+            {isLoading && completion.length === 0 && (
+                 <div className="flex w-full gap-2 mb-4 justify-start animate-fade-in">
                     <div className="bg-white border p-2 rounded-lg shrink-0 h-8 w-8 flex items-center justify-center shadow-sm">
                         <Sparkles className="h-4 w-4 text-blue-600 animate-spin" />
                     </div>

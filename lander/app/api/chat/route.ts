@@ -1,20 +1,19 @@
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText } from 'ai';
 
-// Groq via OpenAI compatibility
-const groq = createOpenAI({
-  apiKey: process.env.GROQ_API_KEY || 'dummy-key-to-prevent-crash', // Ideally should use a real key.
-  baseURL: 'https://api.groq.com/openai/v1',
-});
-
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 30;
-
 export async function POST(req: Request) {
-  if (!process.env.GROQ_API_KEY) {
+  const { prompt } = await req.json();
+
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
      return new Response(JSON.stringify({ error: "Missing API Key configuration" }), { status: 500 });
   }
-  const { prompt } = await req.json();
+
+  // Re-initialize per request to ensure env vars are picked up
+  const groq = createOpenAI({
+    apiKey: apiKey,
+    baseURL: 'https://api.groq.com/openai/v1',
+  });
 
   const result = streamText({
     model: groq('llama-3.3-70b-versatile'),
