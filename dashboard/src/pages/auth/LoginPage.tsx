@@ -10,7 +10,7 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 
 type SetupStep = 1 | 2 | 3 | 4;
 
-const API_BASE = "http://localhost:8000/api";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
