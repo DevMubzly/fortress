@@ -17,18 +17,35 @@ class SetupStatus(BaseModel):
     completed: bool
     step: int
 
+class SetupStatus(BaseModel):
+    completed: bool
+    step: int = 1
+
 @router.get("/status", response_model=SetupStatus)
 def get_setup_status():
-    status = config_service.get_setup_status()
-    if status is True:
-         return {"completed": True, "step": 5}
+    from backend.services.user_service import UserService
+    from backend.services.license_service import LicenseService
+    from backend.database import get_db_connection
 
-    step = 1
-    # Check if license exists
-    if license_service.get_license():
-        step = 2
+    user_svc = UserService()
+    license_svc = LicenseService()
 
-    return {"completed": status, "step": step}
+    has_users = user_svc.has_any_users()
+    has_license = license_svc.get_license() is not None
+
+    print(f"DEBUG: Setup Status Check - Users: {has_users}, License: {has_license}")
+
+    if has_users and has_license:
+        return {"completed": True, "step": 5}
+    
+    # Determine step if not complete
+    if not has_users:
+        return {"completed": False, "step": 1}
+    
+    if not has_license:
+        return {"completed": False, "step": 2}
+        
+    return {"completed": False, "step": 1}
 
 class LicenseUpload(BaseModel):
     file_content: str  # Base64 encoded

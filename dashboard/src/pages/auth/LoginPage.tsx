@@ -47,10 +47,10 @@ const LoginPage = () => {
         if (response.ok) {
           const data = await response.json();
           setIsFirstRun(!data.completed);
+          if (!data.completed && data.step) {
+             setSetupStep(data.step);
+          }
         } else {
-             // Fallback if API fails (e.g. backend not running)
-             // Default to not first run to avoid stuck loading if desired, 
-             // but here we keep existing logic or default to false
              console.error("Failed to check setup status");
         }
       } catch (error) {
@@ -664,12 +664,23 @@ const LoginPage = () => {
             </div>
         </div>
 
-        <div className="space-y-4">
-        <Button
-            onClick={handleLocalLogin}
-            className="w-full h-12 bg-blue-500 rounded-xl hover:bg-blue-600 text-white font-semibold shadow-lg shadow-blue-900/20 transition-all hover:scale-[1.02]"
-            disabled={isLoading}
-          >
+      {!isFirstRun && (
+        <>
+            <div className="flex justify-end">
+                <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-xs text-blue-600 hover:text-blue-700"
+                    onClick={() => toast({ title: "Account Recovery", description: "Please contact your system administrator to reset your credentials." })}
+                >
+                    Forgot password?
+                </Button>
+            </div>
+            <Button
+                onClick={handleLocalLogin}
+                className="w-full h-12 bg-blue-500 rounded-xl hover:bg-blue-600 text-white font-semibold shadow-lg shadow-blue-900/20 transition-all hover:scale-[1.02]"
+                disabled={isLoading}
+            >
+
             {isLoading ? (
               <span className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -679,7 +690,8 @@ const LoginPage = () => {
               "Sign In"
             )}
           </Button>
-        </div>
+        </>
+      )}
       </div>
 
       {/* Security Note */}

@@ -8,6 +8,15 @@ class UserService:
     def create_admin_user(self, user_data: UserCreate) -> User:
         return self.create_user(user_data, role="admin", provider="local")
 
+    def has_any_users(self) -> bool:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM users LIMIT 1")
+        exists = cursor.fetchone() is not None
+        conn.close()
+        return exists
+
+
     def create_user(self, user_data: UserCreate, role: str = "user", provider: str = "local") -> User:
         conn = get_db_connection()
         cursor = conn.cursor()
