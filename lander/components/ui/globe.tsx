@@ -164,21 +164,21 @@ export function Globe({ globeConfig, data }: WorldProps) {
 
     globeRef.current
       .arcsData(data)
-      .arcStartLat((d: any) => d.startLat)
-      .arcStartLng((d: any) => d.startLng)
-      .arcEndLat((d: any) => d.endLat)
-      .arcEndLng((d: any) => d.endLng)
-      .arcColor((e: any) => e.color)
-      .arcAltitude((e: any) => e.arcAlt)
-      .arcStroke((e: any) => [0.32, 0.28, 0.3][e.order % 3])
+      .arcStartLat((d: Position) => d.startLat)
+      .arcStartLng((d: Position) => d.startLng)
+      .arcEndLat((d: Position) => d.endLat)
+      .arcEndLng((d: Position) => d.endLng)
+      .arcColor((e: Position) => e.color)
+      .arcAltitude((e: Position) => e.arcAlt)
+      .arcStroke((e: Position) => [0.32, 0.28, 0.3][e.order % 3])
       .arcDashLength(defaultProps.arcLength)
-      .arcDashInitialGap((e: any) => e.order)
+      .arcDashInitialGap((e: Position) => e.order)
       .arcDashGap(15)
       .arcDashAnimateTime(() => defaultProps.arcTime);
 
     globeRef.current
       .pointsData(filteredPoints)
-      .pointColor((e: any) => e.color)
+      .pointColor((e: { color: string }) => e.color)
       .pointsMerge(true)
       .pointAltitude(0.0)
       .pointRadius(2);

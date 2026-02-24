@@ -2,7 +2,6 @@
 
 import { ReactNode } from "react";
 import { useModal } from "./modal-context";
-import { cn } from "@/lib/utils";
 
 interface OpenContactModalButtonProps {
   children: ReactNode;

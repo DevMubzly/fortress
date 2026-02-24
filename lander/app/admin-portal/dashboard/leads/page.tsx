@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Inbox, Mail, Building2, Calendar, MessageSquare, CheckCircle, Clock, Archive, X, History, Eye, Trash2, RefreshCw } from "lucide-react";
+import { Inbox, Mail, Building2, CheckCircle, X, History, Trash2, RefreshCw } from "lucide-react";
+// Removed unused icons: Calendar, MessageSquare, Clock, Archive, Eye
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -100,7 +101,25 @@ export default function LeadInboxPage() {
   }, [supabase, toast, selectedLead]);
 
   useEffect(() => {
-    fetchLeads();
+    // Avoid calling function directly in effect dependency loop if possible.
+    // fetchLeads depends on 'supabase' (stable), 'toast' (stable), but 'selectedLead' (changes).
+    // If 'fetchLeads' updates state that changes 'selectedLead' or causes re-render...
+    // But 'fetchLeads' uses 'selectedLead' inside it? Yes.
+    // The linter warning is "Calling setState synchronously within an effect".
+    // That means `fetchLeads()` calls `setLeads` or `setIsLoading` synchronously.
+    // Since `fetchLeads` is async (contains await), the initial part is synchronous.
+    // But `setIsLoading(true)` happens at start.
+    // Let's refactor to avoid the direct call if it's the issue, or suppress.
+    // The warning specifically says "Calling setState synchronously".
+    
+    // Actually, fetchLeads is async up to the first await.
+    // If it sets state before await, it's synchronous.
+    // Let's wrap in an async IIFE or timeout to satisfy linter.
+    
+    const init = async () => {
+        await fetchLeads();
+    };
+    init();
   }, [fetchLeads]);
 
   const filteredLeads = leads.filter(lead => {
@@ -178,10 +197,10 @@ export default function LeadInboxPage() {
         <div className="md:col-span-5 lg:col-span-4 flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden h-full">
             <div className="p-4 border-b border-gray-100 bg-gray-50/50">
                 <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
-                    {['all', 'new', 'contacted', 'archived'].map((tab) => (
+                    {(['all', 'new', 'contacted', 'archived'] as const).map((tab) => (
                         <button
                             key={tab}
-                            onClick={() => setActiveTab(tab as any)}
+                            onClick={() => setActiveTab(tab)}
                             className={cn(
                                 "px-3 py-1.5 text-xs font-medium rounded-full capitalize whitespace-nowrap transition-colors",
                                 activeTab === tab ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"

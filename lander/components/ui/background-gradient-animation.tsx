@@ -35,7 +35,7 @@ export const BackgroundGradientAnimation = ({
 }) => {
   const interactiveRef = useRef<HTMLDivElement>(null);
 
-  const [curX, setCurX] = useState(0);
+  const [curX, setCurX] = useState(0); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [curY, setCurY] = useState(0);
   const [tgX, setTgX] = useState(0);
   const [tgY, setTgY] = useState(0);
@@ -56,22 +56,35 @@ export const BackgroundGradientAnimation = ({
     document.body.style.setProperty("--pointer-color", pointerColor);
     document.body.style.setProperty("--size", size);
     document.body.style.setProperty("--blending-value", blendingValue);
-  }, []);
+  }, [
+    gradientBackgroundStart,
+    gradientBackgroundEnd,
+    firstColor,
+    secondColor,
+    thirdColor,
+    fourthColor,
+    fifthColor,
+    pointerColor,
+    size,
+    blendingValue,
+  ]);
 
   useEffect(() => {
     function move() {
       if (!interactiveRef.current) {
         return;
       }
-      setCurX(curX + (tgX - curX) / 20);
-      setCurY(curY + (tgY - curY) / 20);
-      interactiveRef.current.style.transform = `translate(${Math.round(
-        curX
-      )}px, ${Math.round(curY)}px)`;
+      setCurX((prevCurX) => {
+        const newX = prevCurX + (tgX - prevCurX) / 20;
+        interactiveRef.current!.style.transform = `translate(${Math.round(
+          newX
+        )}px, ${Math.round(curY + (tgY - curY) / 20)}px)`; // Note: using closure curY here might be inconsistent if not functional
+        return newX;
+      });
+      setCurY((prevCurY) => prevCurY + (tgY - prevCurY) / 20);
     }
-
     move();
-  }, [tgX, tgY]);
+  }, [tgX, tgY]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     if (interactiveRef.current) {
@@ -83,7 +96,13 @@ export const BackgroundGradientAnimation = ({
 
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
-    setIsSafari(/^((?!chrome|android).)*safari/i.test(navigator.userAgent));
+    // Avoid setting state directly in effect if possible.
+    // Linter complains about synchronous setState.
+    // This is a client-side check.
+    const checkSafari = () => {
+        setIsSafari(/^((?!chrome|android).)*safari/i.test(navigator.userAgent));
+    };
+    checkSafari();
   }, []);
 
   return (

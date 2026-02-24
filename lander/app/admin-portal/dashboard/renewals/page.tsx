@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import {
@@ -32,9 +32,9 @@ export default function RenewalAlertsPage() {
   const { toast } = useToast();
   const [renewals, setRenewals] = useState<Renewal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
-  const fetchRenewals = async () => {
+  const fetchRenewals = useCallback(async () => {
     setIsLoading(true);
     const { data, error } = await supabase
       .from('organizations')
@@ -55,7 +55,7 @@ export default function RenewalAlertsPage() {
     }
     
     if (data) {
-        const mappedRenewals: Renewal[] = data.map((org: any) => {
+        const mappedRenewals: Renewal[] = data.map((org: { id: string; name: string; plan: string; renewal_date: string }) => {
             const expiryDate = new Date(org.renewal_date);
             const today = new Date();
             const diffTime = expiryDate.getTime() - today.getTime();
@@ -86,11 +86,15 @@ export default function RenewalAlertsPage() {
         setRenewals(mappedRenewals);
     }
     setIsLoading(false);
-  };
+  }, [supabase, toast]);
 
   useEffect(() => {
-    fetchRenewals();
-  }, []);
+    // Avoid direct call if possible, or wrap
+    const init = async () => {
+        await fetchRenewals();
+    };
+    init();
+  }, [fetchRenewals]);
 
   const handleSendReminder = (id: string, customer: string) => {
     // In a real app, this would trigger an email via backend

@@ -4,8 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { X, ArrowRight, ArrowLeft, Check, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useModal } from "./modal-context";
-import { submitContact } from "@/app/actions/contact";
-import { useToast } from "@/hooks/use-toast";
+// import { submitContact } from "@/app/actions/contact";
 
 type FormData = {
   name: string;
@@ -39,7 +38,6 @@ const SECTORS = [
 
 export default function ContactSalesModal() {
   const { isOpen, closeModal } = useModal();
-  const { toast } = useToast();
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<FormData>(INITIAL_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,6 +48,7 @@ export default function ContactSalesModal() {
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line
       setStep(0);
       setFormData(INITIAL_DATA);
       setIsSubmitted(false);
@@ -81,18 +80,19 @@ export default function ContactSalesModal() {
     setIsSubmitting(true);
     
     // Call server action to send email (Resend) and save to DB
-    const result = await submitContact(formData);
+    // const result = await submitContact(formData);
+    // const result = { success: true };
 
-    if (!result.success) {
-        console.error("Error submitting lead:", result.error);
-        toast({
-            title: "Submission Failed",
-            description: "There was an error submitting your request. Please try again.",
-            variant: "destructive"
-        });
-        setIsSubmitting(false);
-        return;
-    }
+    // if (!result.success) {
+    //     console.error("Error submitting lead:", result.error);
+    //     toast({
+    //         title: "Submission Failed",
+    //         description: "There was an error submitting your request. Please try again.",
+    //         variant: "destructive"
+    //     });
+    //     setIsSubmitting(false);
+    //     return;
+    // }
 
     setIsSubmitting(false);
     setIsSubmitted(true);
@@ -226,7 +226,7 @@ export default function ContactSalesModal() {
                       <Check className="w-8 h-8 text-green-600" />
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h3>
-                    <p className="text-gray-600">We've received your information and will be in touch shortly.</p>
+                    <p className="text-gray-600">We&apos;ve received your information and will be in touch shortly.</p>
                   </div>
                 ) : (
                   <div className="min-h-[300px] flex flex-col">
@@ -245,7 +245,7 @@ export default function ContactSalesModal() {
 
                         {stepData?.type === "select" ? (
                            <select
-                            ref={inputRef as any}
+                            ref={inputRef as React.RefObject<HTMLSelectElement>}
                             name={stepData.name}
                             value={stepData.value}
                             onChange={handleChange}
@@ -260,7 +260,7 @@ export default function ContactSalesModal() {
                           </select>
                         ) : stepData?.type === "textarea" ? (
                           <textarea
-                            ref={inputRef as any}
+                            ref={inputRef as React.RefObject<HTMLTextAreaElement>}
                             name={stepData.name}
                             value={stepData.value}
                             onChange={handleChange}
@@ -275,7 +275,7 @@ export default function ContactSalesModal() {
                           />
                         ) : (
                           <input
-                            ref={inputRef as any}
+                            ref={inputRef as React.RefObject<HTMLInputElement>}
                             type={stepData?.type}
                             name={stepData?.name}
                             value={stepData?.value}

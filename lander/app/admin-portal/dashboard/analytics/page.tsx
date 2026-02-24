@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+// import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
@@ -28,6 +28,22 @@ const AnalyticsSkeleton = () => (
     </div>
 );
 
+
+type Lead = {
+    id: string;
+    first_name: string;
+    last_name: string;
+    company_name: string;
+    country: string;
+    status: string;
+    created_at: string;
+};
+
+type ChartData = {
+    name: string;
+    value: number;
+};
+
 export default function GlobalAnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [metrics, setMetrics] = useState({
@@ -38,9 +54,9 @@ export default function GlobalAnalyticsPage() {
     totalUsers: 0,
     avgUsersPerOrg: 0,
   });
-  const [countryData, setCountryData] = useState<any[]>([]);
-  const [planData, setPlanData] = useState<any[]>([]);
-  const [recentLeads, setRecentLeads] = useState<any[]>([]);
+  const [countryData, setCountryData] = useState<ChartData[]>([]);
+  const [planData, setPlanData] = useState<ChartData[]>([]);
+  const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
   const [supabase] = useState(() => createClient());
 
   useEffect(() => {

@@ -61,15 +61,6 @@ export default function TicketsPage() {
     }
   }, [])
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'critical': return 'destructive'
-      case 'high': return 'default' // or orange if available
-      case 'medium': return 'secondary'
-      case 'low': return 'outline'
-      default: return 'secondary'
-    }
-  }
 
   const getStatusColor = (status: string) => {
       switch(status) {

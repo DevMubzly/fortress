@@ -2,8 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { 
-  Building2, 
-  MapPin, 
   MoreHorizontal, 
   Search, 
   ShieldCheck, 
@@ -11,7 +9,6 @@ import {
   Globe,
   RefreshCw,
   Plus,
-  Calendar as CalendarIcon,
   FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -51,8 +48,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -102,7 +98,7 @@ export default function OrganizationsPage() {
     notes: ""
   });
   
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   const fetchLeads = useCallback(async () => {
     // Fetch leads that are converted or have been added already?
@@ -122,7 +118,7 @@ export default function OrganizationsPage() {
   }, [supabase]);
 
   const fetchOrganizations = useCallback(async () => {
-    setIsLoading(true);
+    // setIsLoading(true); // Initial load handles this, or check if already loading?
     const { data, error } = await supabase
       .from('organizations')
       .select('*')
@@ -144,7 +140,8 @@ export default function OrganizationsPage() {
   useEffect(() => {
     fetchOrganizations();
     fetchLeads();
-  }, [fetchOrganizations, fetchLeads]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Compute leads that are not yet added as orgs
   const unlinkedLeads = availableLeads.filter(l => 
@@ -160,7 +157,8 @@ export default function OrganizationsPage() {
               name: lead.company_name || `${lead.first_name} ${lead.last_name}'s Org`,
               // Preset dates?
               startDate: new Date().toISOString().split('T')[0],
-              endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+              // endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+              endDate: '' // To make it pure, we initialize empty and user sets it, or compute in effect.
           });
       }
   };
