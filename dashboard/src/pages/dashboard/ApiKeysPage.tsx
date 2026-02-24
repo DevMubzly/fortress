@@ -38,6 +38,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
+import NotificationBell from "@/components/ui/NotificationBell";
 import { formatDistanceToNow } from "date-fns";
 
 interface APIKey {
@@ -247,10 +248,13 @@ export default function ApiKeysPage() {
                     title="API Keys" 
                     description="Manage access keys for programmatic usage of models." 
                 />
-                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    Create API Key
-                </Button>
+                <div className="flex items-center gap-2">
+                    <NotificationBell />
+                    <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                        <Plus className="w-4 h-4" />
+                        Create API Key
+                    </Button>
+                </div>
             </div>
 
             {loading ? (

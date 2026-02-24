@@ -18,12 +18,12 @@ const AnalyticsSkeleton = () => (
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
              {[...Array(4)].map((_, i) => (
-                 <div key={i} className="h-32 bg-gray-100 rounded-xl border border-gray-200"></div>
+                 <div key={i} className="h-32 bg-gray-100 rounded-xl border-none "></div>
              ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-             <div className="h-[300px] bg-gray-100 rounded-xl border border-gray-200"></div>
-             <div className="h-[300px] bg-gray-100 rounded-xl border border-gray-200"></div>
+             <div className="h-[300px] bg-gray-100 rounded-xl border-none "></div>
+             <div className="h-[300px] bg-gray-100 rounded-xl border-none "></div>
         </div>
     </div>
 );
@@ -140,19 +140,19 @@ export default function GlobalAnalyticsPage() {
       </div>
 
       {/* Key Metrics - no backgrounds/borders, centered */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
-        <div className="p-4 text-center border-r last:border-0 border-gray-100">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-lg border-none  ">
+        <div className="p-4 text-center border-r last:border-0 ">
           {/* <FileKey className="w-6 h-6 mx-auto mb-3 text-blue-500" /> */}
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1 font-semibold">Total Leads</p>
           <p className="text-3xl font-bold text-gray-900">{metrics.totalLeads}</p>
         </div>
-        <div className="p-4 text-center border-r last:border-0 border-gray-100">
+        <div className="p-4 text-center border-r last:border-0 ">
           {/* <Globe className="w-6 h-6 mx-auto mb-3 text-green-500" /> */}
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1 font-semibold">Active Organizations</p>
           <p className="text-3xl font-bold text-gray-900">{metrics.activeOrgs}</p>
         </div>
 
-        <div className="p-4 text-center border-r last:border-0 border-gray-100">
+        <div className="p-4 text-center border-r last:border-0 ">
           {/* <Users className="w-6 h-6 mx-auto mb-3 text-purple-500" /> */}
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-1 font-semibold">Total Users</p>
           <p className="text-3xl font-bold text-gray-900">{metrics.totalUsers.toLocaleString()}</p>
@@ -167,7 +167,7 @@ export default function GlobalAnalyticsPage() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-sm border-gray-200">
+        <Card className=" ">
             <CardHeader>
                 <CardTitle>Leads by Country</CardTitle>
                 <CardDescription>Top regions generating interest</CardDescription>
@@ -185,7 +185,7 @@ export default function GlobalAnalyticsPage() {
             </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-gray-200">
+        <Card className=" ">
             <CardHeader>
                 <CardTitle>Plan Distribution</CardTitle>
                 <CardDescription>Breakdown of organization tiers</CardDescription>
@@ -222,7 +222,7 @@ export default function GlobalAnalyticsPage() {
       </div>
 
         {/* Recent Activity Table using Renewals Style */}
-      <Card className="shadow-sm border-gray-200">
+      <Card className=" ">
           <CardHeader>
               <CardTitle>Recent Leads</CardTitle>
               <CardDescription>Latest inquiries received</CardDescription>

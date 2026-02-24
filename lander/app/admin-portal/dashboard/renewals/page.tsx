@@ -127,24 +127,24 @@ export default function RenewalAlertsPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
-        <div className="p-4 text-center border-r last:border-0 border-gray-100">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-lg border-none  ">
+        <div className="p-4 text-center border-r last:border-0 ">
              <p className="text-xs text-red-500 uppercase tracking-wide mb-1 font-semibold">Critical ({"<"} 30 days)</p>
-             <p className="text-3xl font-bold text-gray-900">
+             <div className="text-3xl font-bold text-gray-900">
                 {isLoading ? <Skeleton className="h-8 w-8 mx-auto" /> : criticalCount}
-             </p>
+             </div>
         </div>
-        <div className="p-4 text-center border-r last:border-0 border-gray-100">
+        <div className="p-4 text-center border-r last:border-0 ">
              <p className="text-xs text-yellow-500 uppercase tracking-wide mb-1 font-semibold">Warning ({"<"} 90 days)</p>
-             <p className="text-3xl font-bold text-gray-900">
+             <div className="text-3xl font-bold text-gray-900">
                 {isLoading ? <Skeleton className="h-8 w-8 mx-auto" /> : warningCount}
-             </p>
+             </div>
         </div>
-        <div className="p-4 text-center border-r last:border-0 border-gray-100">
+        <div className="p-4 text-center border-r last:border-0 ">
              <p className="text-xs text-gray-500 uppercase tracking-wide mb-1 font-semibold">Total Value Risk</p>
-             <p className="text-3xl font-bold text-gray-900">
+             <div className="text-3xl font-bold text-gray-900">
                 {isLoading ? <Skeleton className="h-8 w-24 mx-auto" /> : `$${(totalValueRisk / 1000).toFixed(0)}k`}
-             </p>
+             </div>
         </div>
         <div className="p-4 text-center">
              <p className="text-xs text-gray-500 uppercase tracking-wide mb-1 font-semibold">Auto-Renew Eligible</p>
@@ -154,7 +154,7 @@ export default function RenewalAlertsPage() {
         </div>
       </div>
 
-      <Card className="border-gray-200 shadow-sm">
+      <Card className=" ">
         <CardHeader>
           <CardTitle>Upcoming Expirations</CardTitle>
           <CardDescription>Prioritize outreach for high-value accounts</CardDescription>

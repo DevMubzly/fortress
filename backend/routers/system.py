@@ -1,5 +1,5 @@
 ﻿from fastapi import APIRouter, HTTPException, Depends
-from datetime import datetime
+from datetime import datetime, timedelta
 import shutil
 import os
 import time
@@ -8,21 +8,11 @@ import psutil
 import aiohttp
 import asyncio
 from backend.config import settings
+from backend.database import get_db_connection
 from pydantic import BaseModel
+import json
 
 router = APIRouter(prefix="/system", tags=["System"])
-
-# Mock license store
-_license_db = {
-    "status": "active",
-    "organization": "Department of Defense",
-    "tier": "Enterprise",
-    "features": ["Advanced Analytics", "SSO", "Audit Logs", "Unlimited Users"],
-    "max_users": 5000,
-    "active_users": 142,
-    "issued_at": datetime.now().isoformat(),
-    "expires_at": (datetime.now().replace(year=datetime.now().year + 1)).isoformat(),
-}
 
 @router.get("/metrics")
 async def get_system_metrics():
@@ -86,21 +76,64 @@ async def get_system_metrics():
 
 @router.get("/license")
 async def get_license_info():
-    expires = datetime.fromisoformat(_license_db["expires_at"])
-    days_left = (expires - datetime.now()).days
-    
-    return {
-        **_license_db,
-        "days_remaining": days_left
-    }
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get the most recent license
+        cursor.execute("""
+            SELECT client_name, tier, features, max_gpus, expires_at, activated_at 
+            FROM licenses 
+            ORDER BY activated_at DESC 
+            LIMIT 1
+        """)
+        row = cursor.fetchone()
+        conn.close()
+        
+        if not row:
+            return {"status": "none", "message": "No license found"}
+            
+        # Parse data
+        client_name = row["client_name"]
+        tier = row["tier"]
+        features = json.loads(row["features"]) if row["features"] else []
+        max_users = row["max_gpus"]
+        expires_at_str = row["expires_at"]
+        
+        # Calculate status
+        try:
+             # Handle possible Z or offset
+             expires_at = datetime.fromisoformat(expires_at_str.replace("Z", "+00:00"))
+        except:
+             expires_at = datetime.now() + timedelta(days=365) # Fallback
+             
+        now = datetime.now(expires_at.tzinfo) if expires_at.tzinfo else datetime.now()
+        days_remaining = (expires_at - now).days
+        
+        status = "active"
+        if days_remaining < 0:
+            status = "expired"
+        elif days_remaining < 30:
+            status = "expiring"
+            
+        return {
+            "status": status,
+            "organization": client_name,
+            "tier": tier,
+            "features": features,
+            "max_users": max_users,
+            "active_users": 0, # TODO: hook up to real user count
+            "issued_at": row["activated_at"],
+            "expires_at": expires_at_str,
+            "days_remaining": days_remaining
+        }
+    except Exception as e:
+        print(f"Error fetching license: {e}")
+        return {"status": "error", "message": str(e)}
 
 class LicenseUpdate(BaseModel):
     file_content: str
 
 @router.post("/license")
 async def update_license(data: LicenseUpdate):
-    # Mock update logic
-    global _license_db
-    _license_db["organization"] = "Updated Org"
-    _license_db["status"] = "active"
-    return {"status": "updated", "organization": "Updated Org"}
+    raise HTTPException(status_code=501, detail="License update must use setup or admin endpoint")

@@ -414,7 +414,7 @@ export default function OrganizationsPage() {
       </Dialog>
 
 
-      <div className="flex items-center space-x-2 bg-white p-2 rounded-md border border-gray-200 shadow-sm max-w-sm">
+      <div className="flex items-center space-x-2 bg-white p-2 rounded-md border-none   max-w-sm">
         <Search className="w-4 h-4 text-gray-400 ml-2" />
         <Input 
           placeholder="Search organizations..." 
@@ -424,7 +424,7 @@ export default function OrganizationsPage() {
         />
       </div>
 
-      <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden min-h-[400px]">
+      <div className="rounded-md border-none  bg-white  overflow-hidden min-h-[400px]">
         <Table>
           <TableHeader className="bg-gray-50">
             <TableRow>
@@ -455,7 +455,7 @@ export default function OrganizationsPage() {
                 <TableRow key={org.id} className="hover:bg-gray-50/50">
                     <TableCell>
                     <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9 border border-gray-100">
+                        <Avatar className="h-9 w-9 border-none ">
                             <AvatarFallback>{org.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
@@ -465,7 +465,7 @@ export default function OrganizationsPage() {
                     </div>
                     </TableCell>
                     <TableCell>
-                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
+                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border-none ${
                         org.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
                         org.status === 'suspended' ? 'bg-red-50 text-red-700 border-red-200' :
                         'bg-yellow-50 text-yellow-700 border-yellow-200'
@@ -478,7 +478,7 @@ export default function OrganizationsPage() {
                     <Badge variant="outline" className={`capitalize ${
                         org.plan === 'enterprise' ? 'bg-purple-50 text-purple-700 border-purple-200' : 
                         org.plan === 'standard' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
-                        'bg-gray-50 text-gray-600 border-gray-200'
+                        'bg-gray-50 text-gray-600 '
                     }`}>
                         {org.plan}
                     </Badge>

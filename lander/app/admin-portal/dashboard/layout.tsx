@@ -88,7 +88,7 @@ export default function VendorDashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-inter">
       {/* Top Navigation */}
-      <header className="border-b border-border/50 bg-white sticky top-0 z-50 shadow-sm">
+      <header className=" order/50 bg-white sticky top-0 z-50 ">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-2">

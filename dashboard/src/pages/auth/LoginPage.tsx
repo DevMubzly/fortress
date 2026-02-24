@@ -603,11 +603,11 @@ const LoginPage = () => {
   );
 
   const renderLoginForm = () => (
-    <div className="w-full max-w-xl space-y-8 animate-fade-in p-8 bg-white shadow-xl rounded-2xl border border-slate-200 ring-1 ring-slate-100">
+    <div className="w-full max-w-xl space-y-8 animate-fade-in p-8">
       {/* Header */}
       <div className="text-center">
         <div className="flex flex-col items-center justify-center gap-4 mb-6">
-          <div className="p-3 rounded-2xl bg-blue-50 border border-blue-100 shadow-sm">
+          <div className="p-3 rounded-2xl">
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 28 28">
               <path
                 className="fill-blue-600"
@@ -646,7 +646,7 @@ const LoginPage = () => {
                 placeholder="username or email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-200 text-slate-900 placeholder:text-slate-400"
+                className="h-12 bg-white rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-200 text-slate-900 placeholder:text-slate-400"
             />
             </div>
              <div className="space-y-2 text-left">
@@ -659,7 +659,7 @@ const LoginPage = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-200 text-slate-900 placeholder:text-slate-400"
+                className="h-12 bg-white rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-200 text-slate-900 placeholder:text-slate-400"
             />
             </div>
         </div>
@@ -667,7 +667,7 @@ const LoginPage = () => {
         <div className="space-y-4">
         <Button
             onClick={handleLocalLogin}
-            className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white font-semibold shadow-lg shadow-blue-900/20 transition-all hover:scale-[1.02]"
+            className="w-full h-12 bg-blue-500 rounded-xl hover:bg-blue-600 text-white font-semibold shadow-lg shadow-blue-900/20 transition-all hover:scale-[1.02]"
             disabled={isLoading}
           >
             {isLoading ? (

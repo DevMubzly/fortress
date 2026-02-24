@@ -46,13 +46,13 @@ const LeadInboxSkeleton = () => (
         <Skeleton className="h-10 w-32" />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100%-80px)]">
-         <div className="bg-white rounded-lg border p-4 space-y-4">
+         <div className="bg-white rounded-lg border-none p-4 space-y-4">
              <Skeleton className="h-10 w-full" />
              <Skeleton className="h-24 w-full" />
              <Skeleton className="h-24 w-full" />
              <Skeleton className="h-24 w-full" />
          </div>
-         <div className="md:col-span-2 bg-white rounded-lg border p-6 space-y-6">
+         <div className="md:col-span-2 bg-white rounded-lg border-none p-6 space-y-6">
              <div className="flex justify-between">
                  <Skeleton className="h-8 w-48" />
                  <Skeleton className="h-8 w-24" />
@@ -194,8 +194,8 @@ export default function LeadInboxPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-full overflow-hidden">
         {/* Lead List */}
-        <div className="md:col-span-5 lg:col-span-4 flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden h-full">
-            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+        <div className="md:col-span-5 lg:col-span-4 flex flex-col bg-white rounded-lg border-none   overflow-hidden h-full">
+            <div className="p-4 border-b  bg-gray-50/50">
                 <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
                     {(['all', 'new', 'contacted', 'archived'] as const).map((tab) => (
                         <button
@@ -222,7 +222,7 @@ export default function LeadInboxPage() {
                             key={lead.id}
                             onClick={() => setSelectedLead(lead)}
                             className={cn(
-                                "p-4 text-left border-b border-gray-50 transition-colors hover:bg-gray-50 w-full",
+                                "p-4 text-left border-b  transition-colors hover:bg-gray-50 w-full",
                                 selectedLead?.id === lead.id ? "bg-blue-50/50 border-l-4 border-l-blue-600" : "border-l-4 border-l-transparent"
                             )}
                         >
@@ -249,10 +249,10 @@ export default function LeadInboxPage() {
         </div>
 
         {/* Lead Detail */}
-        <div className="md:col-span-7 lg:col-span-8 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col h-full">
+        <div className="md:col-span-7 lg:col-span-8 bg-white rounded-lg border-none   overflow-hidden flex flex-col h-full">
             {selectedLead ? (
                 <>
-                    <div className="p-6 border-b border-gray-100 flex justify-between items-start bg-white">
+                    <div className="p-6 border-b  flex justify-between items-start bg-white">
                         <div>
                             <h3 className="text-xl font-bold text-gray-900 mb-1">{selectedLead.first_name} {selectedLead.last_name}</h3>
                             <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
@@ -263,12 +263,12 @@ export default function LeadInboxPage() {
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 {selectedLead.country && (
-                                    <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+                                    <Badge variant="outline" className="bg-gray-50 text-gray-600 ">
                                         {selectedLead.country}
                                     </Badge>
                                 )}
                                 {selectedLead.sector && (
-                                    <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+                                    <Badge variant="outline" className="bg-gray-50 text-gray-600 ">
                                         {selectedLead.sector}
                                     </Badge>
                                 )}
@@ -299,8 +299,8 @@ export default function LeadInboxPage() {
 
                     <ScrollArea className="flex-1 p-6 bg-white">
                         <div className="space-y-6 max-w-3xl">
-                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-                                <div className="flex items-center gap-2 mb-3 border-b border-gray-200 pb-2">
+                            <div className="bg-gray-50 rounded-lg p-4 border-none ">
+                                <div className="flex items-center gap-2 mb-3 border-b  pb-2">
                                     <Mail className="w-4 h-4 text-gray-400" />
                                     <span className="text-sm font-medium text-gray-900">From: {selectedLead.work_email}</span>
                                     {selectedLead.phone && (
@@ -313,13 +313,13 @@ export default function LeadInboxPage() {
                                         {new Date(selectedLead.created_at).toLocaleString()}
                                     </span>
                                 </div>
-                                <div className="bg-white p-4 rounded border border-gray-100 min-h-[100px] text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                <div className="bg-white p-4 rounded border-none  min-h-[100px] text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
                                     {selectedLead.message || "No message content provided."}
                                 </div>
                             </div>
 
                             {/* Actions Panel */}
-                            <div className="border-t border-gray-100 pt-6">
+                            <div className="border-t  pt-6">
                                 <h4 className="text-sm font-semibold text-gray-900 mb-4">Quick Actions</h4>
                                 <div className="flex flex-wrap gap-3">
                                     <Button variant="outline" size="sm" 
