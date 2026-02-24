@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusIndicator from "@/components/StatusIndicator";
-import { NotificationCenter } from "@/components/NotificationCenter";
 
 // Glass Card Component
 const GlassCard = ({ children, className, onClick }: { children: React.ReactNode; className?: string, onClick?: () => void }) => (
@@ -179,7 +178,6 @@ const OverviewPage = () => {
                     status={metrics?.ollama_status ? "healthy" : "critical"} 
                     value={metrics?.ollama_status ? "Online" : "Issues"}
                 />
-                <NotificationCenter />
                 <Button onClick={() => navigate("/monitoring")} size="sm" variant="outline" className="hidden md:flex gap-2">
                     <Activity className="h-4 w-4" />
                     Monitoring

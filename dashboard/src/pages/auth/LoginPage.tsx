@@ -356,7 +356,7 @@ const LoginPage = () => {
               <Input
                 id="admin-name"
                 type="text"
-                placeholder="John Doe"
+                placeholder="James Bond"
                 value={adminName}
                 onChange={(e) => setAdminName(e.target.value)}
                 className="h-11 bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-200 text-slate-900"

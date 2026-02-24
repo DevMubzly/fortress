@@ -2,6 +2,7 @@ from backend.database import get_db_connection
 from backend.utils import get_password_hash, verify_password, validate_password_strength
 from backend.models.models import User, UserCreate
 from typing import Optional, List
+from datetime import datetime
 import sqlite3
 
 class UserService:

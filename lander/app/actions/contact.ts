@@ -3,7 +3,10 @@
 import { createClient } from '@/lib/supabase'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialize Resend conditionally or inside the function to avoid init errors
+// if the env var is missing during build/startup
+const resendApiKey = process.env.NEXT_RESEND_API_KEY || 're_123'; 
+const resend = new Resend(resendApiKey)
 
 export async function submitContact(formData: {
   name: string

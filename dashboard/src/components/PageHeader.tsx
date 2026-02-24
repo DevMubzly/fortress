@@ -1,6 +1,5 @@
 import { Home, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NotificationCenter } from "@/components/NotificationCenter";
 
 interface PageHeaderProps {
   title: string;
@@ -18,7 +17,6 @@ export const PageHeader = ({ title, description, icon: Icon, className }: PageHe
            <span>/</span>
            <span className="text-foreground">{title}</span>
          </div>
-         <NotificationCenter />
        </div>
 
       <div className="flex items-center gap-3">

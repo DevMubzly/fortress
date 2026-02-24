@@ -4,8 +4,9 @@ import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import BottomTray from "@/components/BottomTray";
 import { useEffect, useState } from "react";
-import { WelcomeModal } from "@/components/WelcomeModal";
+import { FirstLoginModal } from "@/components/FirstLoginModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 // Route title mapping
 const routeTitles: Record<string, string> = {
@@ -60,17 +61,20 @@ const MainContent = () => {
   return (
     <ProtectedRoute>
     <div className="h-screen bg-background overflow-hidden flex flex-col">
-      <WelcomeModal open={showWelcome} onOpenChange={setShowWelcome} />
+      <FirstLoginModal open={showWelcome} onOpenChange={setShowWelcome} />
       <AppSidebar />
       
       {/* Fixed Header - aligned with sidebar header */}
       <header
         className={cn(
-          "flex items-center px-4 lg:px-6 bg-background transition-all duration-300 shrink-0 pt-3 pb-3",
+          "flex items-center justify-between px-4 lg:px-6 bg-background transition-all duration-300 shrink-0 pt-3 pb-3",
           isCollapsed ? "ml-14" : "ml-64"
         )}
       >
         <h1 className="text-sm font-medium font-persis text-foreground">{pageTitle}</h1>
+        <div className="flex items-center gap-4">
+            <NotificationCenter />
+        </div>
       </header>
 
       {/* Main Content */}

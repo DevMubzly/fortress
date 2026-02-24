@@ -209,6 +209,15 @@ class LicenseService:
         conn.close()
         
         if row:
+            # Parse raw license to get issuedAt which isn't stored in its own column
+            try:
+                raw_data = json.loads(row["raw_license"])
+                issued_at_str = raw_data.get("issuedAt")
+                # Format or pass as is? Frontend expects ISO string or date
+                issued_at = datetime.fromisoformat(issued_at_str.replace('Z', '+00:00')).isoformat() if issued_at_str else None
+            except:
+                issued_at = None
+
             return {
                 "id": row["id"],
                 "client_name": row["client_name"],
@@ -218,7 +227,8 @@ class LicenseService:
                 "expires_at": datetime.fromisoformat(row["expires_at"]),
                 "fingerprint": row["fingerprint"],
                 "raw_license": row["raw_license"],
-                "activated_at": datetime.fromisoformat(row["activated_at"]) if row["activated_at"] else None
+                "activated_at": datetime.fromisoformat(row["activated_at"]) if row["activated_at"] else None,
+                "issued_at": issued_at
             }
         return None
 
