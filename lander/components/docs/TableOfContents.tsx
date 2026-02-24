@@ -32,9 +32,9 @@ export function TableOfContents({ items }: { items: TocItem[] }) {
   }, [items]);
 
   return (
-    <div className="hidden xl:block w-64 shrink-0 border-l pl-8 sticky top-24 h-[calc(100vh-6rem)] overflow-y-auto">
-      <h4 className="font-semibold text-sm mb-4">On this page</h4>
-      <ul className="space-y-3 text-sm">
+    <div className="hidden xl:block w-[150px] shrink-0 border-l pl-4 sticky top-24 h-[calc(100vh-6rem)] overflow-y-auto text-xs">
+      <h4 className="font-semibold text-xs mb-2">On this page</h4>
+      <ul className="space-y-2 text-xs">
         {items.map((item) => (
           <li key={item.id}>
             <a

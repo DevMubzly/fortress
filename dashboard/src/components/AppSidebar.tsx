@@ -1,5 +1,5 @@
 import { Logo } from "@/components/ui/Logo";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Bot,
@@ -17,6 +17,7 @@ import {
   X,
   Shield,
   KeyRound,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,7 +25,15 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { usePermissions } from "@/lib/permissions";
 import { useLicense } from "@/contexts/LicenseContext";
 import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 import { useDownload } from "@/contexts/DownloadContext";
 
@@ -56,12 +65,30 @@ const staffNavItems: NavItem[] = [
 const AppSidebar = () => {
   const { isCollapsed, toggle } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
   const permissions = usePermissions();
   const { downloads, activeDownloadCount } = useDownload();
   const { license } = useLicense();
   
   const isActiveRoute = (url: string) => location.pathname === url;
   const navItems = permissions.isStaffOnly ? staffNavItems : adminNavItems;
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpen((open) => !open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  const runCommand = (command: () => void) => {
+    setOpen(false);
+    command();
+  };
 
   return (
     <aside
@@ -98,6 +125,48 @@ const AppSidebar = () => {
           <div className="h-px bg-sidebar-border" />
         </div>
       </div>
+
+      <div className="px-3 py-2">
+        <Button
+          variant="outline"
+          className={cn(
+            "relative h-9 w-full justify-start rounded-[0.5rem] bg-muted/50 text-sm font-normal text-muted-foreground shadow-none sm:pr-12 md:w-full",
+            isCollapsed && "h-9 w-9 p-0 justify-center"
+          )}
+          onClick={() => setOpen(true)}
+        >
+          <Search className={cn("h-4 w-4", !isCollapsed && "mr-2")} />
+          {!isCollapsed && (
+            <>
+              <span className="hidden lg:inline-flex">Search...</span>
+              <kbd className="pointer-events-none absolute right-[0.3rem] top-[0.3rem] hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+                <span className="text-xs">⌘</span>K
+              </kbd>
+            </>
+          )}
+        </Button>
+      </div>
+
+      <CommandDialog open={open} onOpenChange={setOpen}>
+        <CommandInput placeholder="Type a command or search..." />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Navigation">
+            {navItems.map((item) => (
+              <CommandItem
+                key={item.id}
+                value={item.title}
+                onSelect={() => {
+                  runCommand(() => navigate(item.url));
+                }}
+              >
+                <item.icon className="mr-2 h-4 w-4" />
+                <span>{item.title}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-2 px-2">

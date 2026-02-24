@@ -420,11 +420,16 @@ async def load_model(req: ModelLoadRequest):
                 "prompt": "", 
                 "keep_alive": "5m" 
             }
-            async with session.post(f"{OLLAMA_BASE_URL}/api/generate", json=payload) as resp:
-                if resp.status == 200:
-                    return {"status": "loaded", "model": req.model}
-                else:
-                    raise HTTPException(status_code=resp.status, detail="Failed to load model in Ollama")
+            try:
+                async with session.post(f"{OLLAMA_BASE_URL}/api/generate", json=payload) as resp:
+                    if resp.status == 200:
+                        return {"status": "loaded", "model": req.model}
+                    else:
+                        raise HTTPException(status_code=resp.status, detail="Failed to load model in Ollama")
+            except aiohttp.ClientConnectorError:
+                raise HTTPException(status_code=503, detail="Ollama service unreachable")
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Load error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
