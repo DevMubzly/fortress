@@ -174,7 +174,11 @@ const OverviewPage = () => {
                 <p className="text-muted-foreground mt-1">Real-time system insights and performance metrics.</p>
             </div>
             <div className="flex items-center gap-2">
-                <StatusIndicator status={metrics?.ollama_status ? "healthy" : "critical"} text={metrics?.ollama_status ? "System Online" : "System Issues"} />
+                <StatusIndicator 
+                    label="AI System" 
+                    status={metrics?.ollama_status ? "healthy" : "critical"} 
+                    value={metrics?.ollama_status ? "Online" : "Issues"}
+                />
                 <NotificationCenter />
                 <Button onClick={() => navigate("/monitoring")} size="sm" variant="outline" className="hidden md:flex gap-2">
                     <Activity className="h-4 w-4" />

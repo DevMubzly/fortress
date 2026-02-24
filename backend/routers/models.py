@@ -9,6 +9,7 @@ import logging
 from datetime import datetime
 
 from starlette.websockets import WebSocketDisconnect
+from backend.config import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/models", tags=["models"])
 
 # Adjust if your Ollama runs elsewhere or in Docker
-OLLAMA_BASE_URL = "http://localhost:11434"
+OLLAMA_BASE_URL = settings.OLLAMA_BASE_URL
 
 # -----------------------------------------------------------------------------
 # Global Download Manager
@@ -141,8 +142,12 @@ class DownloadManager:
                                     pass
         except Exception as e:
             logger.error(f"Pull worker error: {e}")
+            msg = str(e)
+            if "Connect call failed" in msg or "Connection refused" in msg or "10061" in msg or "Cannot connect to host" in msg:
+                 msg = "Ollama Unreachable. Is it running?"
+            
             if model_id in self.active_downloads:
-                self.active_downloads[model_id]['status'] = f"Error: {str(e)}"
+                self.active_downloads[model_id]['status'] = f"Error: {msg}"
                 await self.broadcast_status()
 
     def pause_pull(self, model_id: str):

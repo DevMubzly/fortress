@@ -3,10 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Bot,
-  FolderOpen,
-  ScrollText,
-  Users,
-  Activity,
   Box,
   PanelLeft,
   MessageSquare,
@@ -14,18 +10,21 @@ import {
   Download,
   BookOpen,
   FileText,
-  X,
-  Shield,
+  Activity,
+  Users,
   KeyRound,
+  Shield,
+  ChevronRight,
+  ChevronLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { usePermissions } from "@/lib/permissions";
 import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
-
 import { useDownload } from "@/contexts/DownloadContext";
+import NotificationBell from "@/components/ui/NotificationBell";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface NavItem {
   id: string;
@@ -52,112 +51,138 @@ const staffNavItems: NavItem[] = [
   { id: "personal-rag", title: "My Documents", icon: FileText, url: "/personal-rag", staffOnly: true },
 ];
 
-// Mock download state - Removed
-
 const AppSidebar = () => {
   const { isCollapsed, toggle } = useSidebar();
   const location = useLocation();
   const permissions = usePermissions();
-  const { downloads, activeDownloadCount } = useDownload();
+  const { downloads } = useDownload();
   
-  const isActiveRoute = (url: string) => location.pathname === url;
+  const isActiveRoute = (url: string) => location.pathname.startsWith(url);
   const navItems = permissions.isStaffOnly ? staffNavItems : adminNavItems;
+
+  const activeDownloads = Object.values(downloads || {}).filter(d => 
+    d.status === 'downloading' || d.status === 'Starting...' || d.status === 'Resuming...'
+  );
 
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 bottom-6 bg-sidebar border-r border-border/30 flex flex-col z-50 transition-all duration-300",
-        isCollapsed ? "w-14" : "w-64"
+        "fixed left-0 top-0 bottom-6 bg-card/80 backdrop-blur-xl border-r border-border/40 flex flex-col z-50 transition-all duration-300 ease-in-out shadow-sm",
+        isCollapsed ? "w-[70px]" : "w-[260px]"
       )}
     >
       {/* Header */}
-      <div className="p-3">
-        <div className="flex items-center gap-3 pb-3">
-          {isCollapsed ? (
-            <Button variant="ghost" size="icon" onClick={toggle} className="w-8 h-8 mx-auto">
-              <PanelLeft className="w-5 h-5 text-muted-foreground" />
-            </Button>
-          ) : (
-            <>
-              <div className="p-1.5 rounded-lg">
-                <Logo size={20} />
+      <div className="h-16 flex items-center px-4 border-b border-border/40">
+        <div className={cn("flex items-center gap-3 w-full transition-all", isCollapsed ? "justify-center" : "justify-between")}>
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="bg-primary/10 p-2 rounded-lg shrink-0">
+               <Shield className="w-5 h-5 text-primary" />
+            </div>
+            {!isCollapsed && (
+              <div className="flex flex-col">
+                <span className="font-bold text-sm tracking-tight">Fortress</span>
+                <span className="text-[10px] text-muted-foreground font-mono">Secure Workspace</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="font-bold font-persis text-sm tracking-wide whitespace-nowrap">Fortress</h1>
-                <p className="text-[10px] font-mono text-muted-foreground whitespace-nowrap">Secure Workspace</p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={toggle} className="w-8 h-8 shrink-0">
-                <PanelLeft className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </>
-          )}
-        </div>
-        <div className="mx-1">
-          <div className="h-px bg-sidebar-border" />
+            )}
+          </div>
+          
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggle} 
+            className={cn("h-8 w-8 hover:bg-accent text-muted-foreground", isCollapsed && "hidden")}
+          >
+            <PanelLeft className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-2 px-2">
-        <div className="space-y-1">
-          {navItems.map((item) => (
-            isCollapsed ? (
-              <button
-                key={item.id}
-                onClick={toggle}
-                className={cn(
-                  "flex items-center justify-center w-10 h-10 mx-auto rounded-lg transition-colors cursor-pointer hover:bg-sidebar-accent",
-                  isActiveRoute(item.url) ? "bg-sidebar-accent text-primary" : "text-muted-foreground"
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-              </button>
-            ) : (
-              <Link
-                key={item.id}
-                to={item.url}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 text-sm font-medium hover:bg-sidebar-accent rounded-lg",
-                  isActiveRoute(item.url) && "text-primary bg-sidebar-accent"
-                )}
-              >
-                <item.icon className={cn(
-                  "w-4 h-4 shrink-0",
-                  isActiveRoute(item.url) ? "text-primary" : "text-muted-foreground"
-                )} />
-                <span className="whitespace-nowrap">{item.title}</span>
-              </Link>
-            )
-          ))}
-        </div>
+      <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
+        {navItems.map((item) => (
+          <Link
+            key={item.id}
+            to={item.url}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-md transition-all duration-200 group relative text-sm",
+              isActiveRoute(item.url) 
+                ? "bg-primary/10 text-primary font-medium" 
+                : "text-muted-foreground hover:bg-accent hover:text-foreground",
+              isCollapsed && "justify-center px-0 py-3"
+            )}
+          >
+            <item.icon className={cn("w-5 h-5 shrink-0 transition-colors", isActiveRoute(item.url) ? "text-primary" : "group-hover:text-foreground")} />
+            
+            {!isCollapsed && (
+              <span className="whitespace-nowrap overflow-hidden text-ellipsis">{item.title}</span>
+            )}
+            
+            {/* Tooltip for collapsed state */}
+            {isCollapsed && (
+              <div className="absolute left-14 hidden group-hover:block ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded-md border shadow-md whitespace-nowrap z-50 animate-in fade-in zoom-in-95 duration-200">
+                {item.title}
+              </div>
+            )}
+          </Link>
+        ))}
       </nav>
 
-      {/* Active Downloads Section */}
-      {!isCollapsed && Object.values(downloads || {}).filter(d => d.status === 'downloading').length > 0 && (
-        <div className="p-4 border-t border-border">
-          <div className="text-xs font-semibold text-muted-foreground mb-2">
-            Active Downloads
-          </div>
-          <div className="space-y-3">
-            {Object.values(downloads)
-              .filter(d => d.status === 'downloading' || d.status === 'Starting...' || d.status === 'Resuming...')
-              .map((download) => (
-              <div key={download.modelId} className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="truncate max-w-[120px]">{download.modelId}</span>
-                  <span>{Math.round(download.progress || 0)}%</span>
+      {/* Footer Area */}
+      <div className="p-4 border-t border-border/40 bg-muted/20 space-y-4">
+        
+        {/* Active Downloads Section */}
+        {activeDownloads.length > 0 && (
+          <div className={cn("rounded-lg bg-background border border-border shadow-sm transition-all", isCollapsed ? "p-2" : "p-3")}>
+             {!isCollapsed ? (
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Downloads</span>
                 </div>
-                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-primary transition-all duration-300" 
-                    style={{ width: `${download.progress || 0}%` }}
-                  />
-                </div>
+                <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-mono">
+                  {activeDownloads.length}
+                </span>
               </div>
-            ))}
+            ) : (
+                <div className="flex justify-center mb-2">
+                   <Download className="w-4 h-4 text-primary animate-pulse" />
+                </div>
+            )}
+
+            <div className="space-y-3 w-full">
+              {activeDownloads.map((download) => (
+                <div key={download.modelId} className="space-y-1.5 w-full">
+                  {!isCollapsed && (
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span className="truncate max-w-[100px] font-medium" title={download.modelId}>{download.modelId}</span>
+                      <span className="font-mono text-[10px]">{Math.round(download.progress || 0)}%</span>
+                    </div>
+                  )}
+                  <Progress value={download.progress || 0} className="h-1.5 w-full bg-secondary" indicatorClassName="bg-primary" />
+                </div>
+              ))}
+            </div>
           </div>
+        )}
+
+        {/* User Profile & Notifications */}
+        <div className={cn("flex items-center gap-3 pt-1", isCollapsed ? "flex-col justify-center" : "justify-between")}>
+           <div className="flex items-center gap-3 overflow-hidden">
+                <Avatar className="h-8 w-8 border border-border/50">
+                    <AvatarImage src="/placeholder-avatar.jpg" />
+                    <AvatarFallback className="bg-primary/5 text-primary text-xs font-medium">AD</AvatarFallback>
+                </Avatar>
+                {!isCollapsed && (
+                    <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium truncate text-foreground">Admin</span>
+                    <span className="text-[10px] text-muted-foreground truncate">admin@fortress.ai</span>
+                    </div>
+                )}
+           </div>
+           
+           {!isCollapsed && <NotificationBell />}
         </div>
-      )}
+      </div>
     </aside>
   );
 };

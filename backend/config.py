@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     SESSION_EXPIRY_REMEMBER: int = 2592000  # 30 days in seconds
     BCRYPT_ROUNDS: int = 12
     ENCRYPTION_KEY: str = "5aaI1tQaVaWvcs6rCe1yd0pFI2VFx3RYvznK2YNs1w8="
+    
+    # AI / Models
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
 
     class Config:
         env_file = ".env"

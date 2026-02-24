@@ -2,12 +2,12 @@ import GlobeDemo from "@/components/globe-demo";
 
 export default function FeaturesPlanet() {
   return (
-    <section className="relative before:absolute before:inset-0 before:-z-20 before:bg-neutral-900">
+    <section className="relative before:absolute before:inset-0 before:-z-20 before:bg-gradient-to-br before:from-indigo-50 before:to-blue-100/50">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="py-12 md:py-20">
           {/* Section header */}
           <div className="mx-auto max-w-3xl pb-16 text-center md:pb-20">
-            <h2 className="text-3xl font-bold text-gray-200 md:text-4xl">
+            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 md:text-4xl">
               Data sovereignty, security, and compliance
             </h2>
           </div>
@@ -20,11 +20,11 @@ export default function FeaturesPlanet() {
             </div>
           </div>
           {/* Grid */}
-          <div className="grid overflow-hidden sm:grid-cols-2 lg:grid-cols-3 *:relative *:p-6 *:before:absolute *:before:bg-gray-800 *:before:[block-size:100vh] *:before:[inline-size:1px] *:before:[inset-block-start:0] *:before:[inset-inline-start:-1px] *:after:absolute *:after:bg-gray-800 *:after:[block-size:1px] *:after:[inline-size:100vw] *:after:[inset-block-start:-1px] *:after:[inset-inline-start:0] md:*:p-10">
+          <div className="grid overflow-hidden sm:grid-cols-2 lg:grid-cols-3 *:relative *:p-6 *:before:absolute *:before:bg-gray-200/60 *:before:[block-size:100vh] *:before:[inline-size:1px] *:before:[inset-block-start:0] *:before:[inset-inline-start:-1px] *:after:absolute *:after:bg-gray-200/60 *:after:[block-size:1px] *:after:[inline-size:100vw] *:after:[inset-block-start:-1px] *:after:[inset-inline-start:0] md:*:p-10">
             <article>
-              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
+              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-900">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-blue-600"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}
@@ -33,16 +33,16 @@ export default function FeaturesPlanet() {
                 </svg>
                 <span>Full Data Sovereignty</span>
               </h3>
-              <p className="text-[15px] text-gray-400">
+              <p className="text-[15px] text-gray-600">
                 Keep sensitive data within your borders. Fortress enables
                 governments and institutions to maintain full control over their
                 AI infrastructure.
               </p>
             </article>
             <article>
-              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
+              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-900">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-blue-600"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}
@@ -51,15 +51,15 @@ export default function FeaturesPlanet() {
                 </svg>
                 <span>Enterprise Security</span>
               </h3>
-              <p className="text-[15px] text-gray-400">
+              <p className="text-[15px] text-gray-600">
                 Secure enterprise authentication (SSO), role-based access control,
                 and encrypted storage to meet strict compliance requirements.
               </p>
             </article>
             <article>
-              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
+              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-900">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-blue-600"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}
@@ -68,15 +68,15 @@ export default function FeaturesPlanet() {
                 </svg>
                 <span>Compliant Infrastructure</span>
               </h3>
-              <p className="text-[15px] text-gray-400">
-                A foundational platform built for regulated environments—ideal for banks,
+              <p className="text-[15px] text-gray-600">
+                A foundational platform built for regulated environments, ideal for banks,
                 governments, and healthcare organizations.
               </p>
             </article>
             <article>
-              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
+              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-900">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-blue-600"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}
@@ -85,15 +85,15 @@ export default function FeaturesPlanet() {
                 </svg>
                 <span>Local Deployment</span>
               </h3>
-              <p className="text-[15px] text-gray-400">
+              <p className="text-[15px] text-gray-600">
                 Eliminate reliance on external cloud providers. Deploy and manage
                 artificial intelligence systems directly in your data center.
               </p>
             </article>
             <article>
-              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
+              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-900">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-blue-600"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}
@@ -102,15 +102,15 @@ export default function FeaturesPlanet() {
                 </svg>
                 <span>Scalable AI</span>
               </h3>
-              <p className="text-[15px] text-gray-400">
+              <p className="text-[15px] text-gray-600">
                 Host AI models locally for document intelligence, fraud detection,
                 analytics, and research computing at scale.
               </p>
             </article>
             <article>
-              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
+              <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-900">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-blue-600"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}
@@ -119,7 +119,7 @@ export default function FeaturesPlanet() {
                 </svg>
                 <span>Audit Logging</span>
               </h3>
-              <p className="text-[15px] text-gray-400">
+              <p className="text-[15px] text-gray-600">
                 Complete transparency with detailed audit logs for every action,
                 ensuring accountability and compliance.
               </p>
