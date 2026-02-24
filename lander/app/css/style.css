@@ -15,6 +15,7 @@
 @theme {
   --font-inter: Inter, sans-serif;
   --font-persis: var(--font-persis), sans-serif;
+  --font-manrope: var(--font-manrope), sans-serif;
   --font-mono: Roboto Mono, monospace;
 
   --text-xs: 0.75rem;
@@ -390,31 +391,40 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-}/* Scrollbar */
+}
+
+/* Scrollbar */
 .scrollbar-thin {
   scrollbar-width: thin;
   scrollbar-color: #475569 transparent;
 }
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
 }
+
 .scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: #475569;
   border-radius: 20px;
 }
+
 .scrollbar-thin {
   scrollbar-width: thin;
   scrollbar-color: #475569 #1e293b;
 }
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
 }
+
 .scrollbar-thin::-webkit-scrollbar-track {
   background: #1e293b;
 }
+
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: #475569;
   border-radius: 20px;

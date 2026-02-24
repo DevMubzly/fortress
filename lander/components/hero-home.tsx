@@ -12,7 +12,7 @@ export default function HeroHome() {
             {/* Left column: Text content */}
             <div className="text-center lg:text-left">
               <h1
-                className="mb-6 text-5xl font-bold [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] lg:[border-image:linear-gradient(to_right,--theme(--color-slate-300/.8),transparent)1] md:text-6xl"
+                className="mb-6 text-5xl font-persis font-bold [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] lg:[border-image:linear-gradient(to_right,--theme(--color-slate-300/.8),transparent)1] md:text-6xl"
                 data-aos="zoom-y-out"
                 data-aos-delay={150}
               >

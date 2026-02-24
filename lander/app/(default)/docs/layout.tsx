@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DocsSearch } from "@/components/docs/DocsSearch";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 export default function DocsLayout({
   children,
@@ -11,6 +12,11 @@ export default function DocsLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   const sidebarItems = [
     { title: "Introduction", href: "/docs/intro" },
     { title: "Installation", href: "/docs/installation" },

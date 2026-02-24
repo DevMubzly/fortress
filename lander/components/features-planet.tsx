@@ -7,7 +7,7 @@ export default function FeaturesPlanet() {
         <div className="py-12 md:py-20">
           {/* Section header */}
           <div className="mx-auto max-w-3xl pb-16 text-center md:pb-20">
-            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 md:text-4xl">
+            <h2 className="text-3xl font-persis font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 md:text-4xl">
               Data sovereignty, security, and compliance
             </h2>
           </div>
