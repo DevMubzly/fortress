@@ -42,6 +42,7 @@
     "three-globe": "^2.45.0"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/postcss": "^4",
     "@types/aos": "^3.0.7",
