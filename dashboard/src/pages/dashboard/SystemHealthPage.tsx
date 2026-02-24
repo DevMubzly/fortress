@@ -183,108 +183,141 @@ const SystemHealthPage = () => {
       {/* Primary Metrics Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           
-          <Card className="col-span-1 glass border-primary/10">
-             <CardHeader className="pb-2">
-                 <CardTitle className="text-sm font-medium text-muted-foreground">CPU Usage</CardTitle>
-             </CardHeader>
-             <CardContent>
-                 <div className="text-2xl font-bold flex items-center gap-2">
-                     <Cpu className="h-5 w-5 text-purple-500" />
-                     {metrics.cpu_usage.toFixed(1)}%
+          <div className="p-6 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col justify-between hover:bg-muted/50 transition-colors">
+             <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <span className="text-sm font-medium text-muted-foreground">CPU Usage</span>
+                 <Cpu className="h-4 w-4 text-muted-foreground" />
+             </div>
+             <div>
+                 <div className="text-2xl font-bold">{metrics.cpu_usage.toFixed(1)}%</div>
+                 <div className="h-1.5 w-full bg-secondary rounded-full mt-3 overflow-hidden">
+                     <div className="h-full bg-primary transition-all duration-500" style={{ width: `${Math.min(metrics.cpu_usage, 100)}%` }} />
                  </div>
-                 <div className="h-2 w-full bg-slate-100 rounded-full mt-2 overflow-hidden">
-                     <div className="h-full bg-purple-500 transition-all duration-500" style={{ width: `${Math.min(metrics.cpu_usage, 100)}%` }} />
-                 </div>
-             </CardContent>
-          </Card>
+                 <p className="text-xs text-muted-foreground mt-2">
+                    {metrics.process_count} Processes Active
+                 </p>
+             </div>
+          </div>
 
-          <Card className="col-span-1 glass border-primary/10">
-             <CardHeader className="pb-2">
-                 <CardTitle className="text-sm font-medium text-muted-foreground">Memory Usage</CardTitle>
-             </CardHeader>
-             <CardContent>
-                 <div className="text-2xl font-bold flex items-center gap-2">
-                     <Activity className="h-5 w-5 text-blue-500" />
-                     {metrics.ram_usage.toFixed(1)}%
-                 </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                      {metrics.ram_used.toFixed(1)} GB / {metrics.ram_total.toFixed(1)} GB
-                  </p>
-                 <div className="h-2 w-full bg-slate-100 rounded-full mt-2 overflow-hidden">
+          <div className="p-6 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col justify-between hover:bg-muted/50 transition-colors">
+             <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <span className="text-sm font-medium text-muted-foreground">Memory Usage</span>
+                 <Activity className="h-4 w-4 text-muted-foreground" />
+             </div>
+             <div>
+                 <div className="text-2xl font-bold">{metrics.ram_usage.toFixed(1)}%</div>
+                 <div className="h-1.5 w-full bg-secondary rounded-full mt-3 overflow-hidden">
                      <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${Math.min(metrics.ram_usage, 100)}%` }} />
                  </div>
-             </CardContent>
-          </Card>
-          
-          <Card className="col-span-1 glass border-primary/10">
-             <CardHeader className="pb-2">
-                 <CardTitle className="text-sm font-medium text-muted-foreground">Disk I/O</CardTitle>
-             </CardHeader>
-             <CardContent>
-                 <div className="text-2xl font-bold flex items-center gap-2">
-                     <HardDrive className="h-5 w-5 text-orange-500" />
-                     {metrics.disk_percent.toFixed(1)}%
-                 </div>
-                 <p className="text-xs text-muted-foreground mt-1">
-                      {metrics.disk_used.toFixed(1)} GB Used
+                 <p className="text-xs text-muted-foreground mt-2">
+                      {metrics.ram_used.toFixed(1)} GB / {metrics.ram_total.toFixed(1)} GB Used
                   </p>
-                 <div className="h-2 w-full bg-slate-100 rounded-full mt-2 overflow-hidden">
+             </div>
+          </div>
+          
+          <div className="p-6 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col justify-between hover:bg-muted/50 transition-colors">
+             <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <span className="text-sm font-medium text-muted-foreground">Disk I/O</span>
+                 <HardDrive className="h-4 w-4 text-muted-foreground" />
+             </div>
+             <div>
+                 <div className="text-2xl font-bold">{metrics.disk_percent.toFixed(1)}%</div>
+                 <div className="h-1.5 w-full bg-secondary rounded-full mt-3 overflow-hidden">
                      <div className="h-full bg-orange-500 transition-all duration-500" style={{ width: `${Math.min(metrics.disk_percent, 100)}%` }} />
                  </div>
-             </CardContent>
-          </Card>
+                 <p className="text-xs text-muted-foreground mt-2">
+                      {metrics.disk_used.toFixed(1)} GB Used
+                  </p>
+             </div>
+          </div>
 
-           <Card className="col-span-1 glass border-primary/10">
-             <CardHeader className="pb-2">
-                 <CardTitle className="text-sm font-medium text-muted-foreground">Network</CardTitle>
-             </CardHeader>
-             <CardContent>
-                 <div className="text-2xl font-bold flex items-center gap-2">
-                     <Network className="h-5 w-5 text-green-500" />
-                     Active
+           <div className="p-6 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col justify-between hover:bg-muted/50 transition-colors">
+             <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <span className="text-sm font-medium text-muted-foreground">Network</span>
+                 <Network className="h-4 w-4 text-muted-foreground" />
+             </div>
+             <div>
+                 <div className="text-2xl font-bold">Active</div>
+                 <div className="flex items-center gap-4 mt-3">
+                     <div className="flex flex-col">
+                        <span className="text-[10px] uppercase text-muted-foreground font-semibold">Sent</span>
+                        <span className="text-sm font-medium">{metrics.net_sent_mb.toFixed(1)} MB</span>
+                     </div>
+                     <div className="w-px h-6 bg-border"></div>
+                     <div className="flex flex-col">
+                        <span className="text-[10px] uppercase text-muted-foreground font-semibold">Recv</span>
+                        <span className="text-sm font-medium">{metrics.net_recv_mb.toFixed(1)} MB</span>
+                     </div>
                  </div>
-                 <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                      <span>↑ {metrics.net_sent_mb.toFixed(1)} MB</span>
-                      <span>↓ {metrics.net_recv_mb.toFixed(1)} MB</span>
-                 </div>
-             </CardContent>
-          </Card>
+             </div>
+          </div>
 
           {/* 1. CPU & RAM History (Line Chart) */}
-          <Card className="col-span-1 lg:col-span-3 glass border-primary/10">
+          <Card className="col-span-1 lg:col-span-3 border bg-card shadow-sm">
               <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                      <Activity className="w-4 h-4 text-primary" />
-                      System Load (CPU & RAM)
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                      <Activity className="w-5 h-5 text-primary" />
+                      Live System Load
                   </CardTitle>
-                  <CardDescription>Real-time resource utilization over the last minute.</CardDescription>
+                  <CardDescription>Real-time resource utilization (Last 60s)</CardDescription>
               </CardHeader>
-              <CardContent className="h-[250px]">
+              <CardContent className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={history}>
                           <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
                           <XAxis dataKey="time" hide />
-                          <YAxis domain={[0, 100]} fontSize={10} tickFormatter={v => `${v}%`} axisLine={false} tickLine={false} />
+                          <YAxis domain={[0, 100]} fontSize={10} tickFormatter={v => `${v}%`} axisLine={false} tickLine={false} width={30} />
                           <Tooltip 
-                              contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                              contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                               itemStyle={{ fontSize: '12px' }}
+                              labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
                           />
-                          <Legend verticalAlign="top" height={36}/>
-                          <Line type="monotone" dataKey="cpu" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="CPU Usage" animationDuration={500} />
-                          <Line type="monotone" dataKey="ram" stroke="#a855f7" strokeWidth={2} dot={false} name="RAM Usage" animationDuration={500} />
+                          <Legend verticalAlign="top" height={36} iconType="circle" />
+                          <Line type="monotone" dataKey="cpu" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="CPU Usage" animationDuration={500} isAnimationActive={false} />
+                          <Line type="monotone" dataKey="ram" stroke="#a855f7" strokeWidth={2} dot={false} name="RAM Usage" animationDuration={500} isAnimationActive={false} />
                       </LineChart>
                   </ResponsiveContainer>
               </CardContent>
           </Card>
 
-          {/* 2. Disk Usage (Pie Chart) */}
-          <Card className="glass border-primary/10">
+          {/* 2. Platform Services Status (Better Listing) */}
+          <Card className="col-span-1 lg:col-span-1 border bg-card shadow-sm flex flex-col">
               <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                      <HardDrive className="w-4 h-4 text-primary" />
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                      <Server className="w-5 h-5 text-primary" />
+                      Platform Services
+                  </CardTitle>
+                  <CardDescription>Core component status</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-center gap-3">
+                    <ServiceStatusItem 
+                        icon={Database} 
+                        name="Helper DB (SQLite)" 
+                        detail={`${metrics.db_size_mb.toFixed(2)} MB Storage`}
+                        status="healthy" 
+                    />
+                    <ServiceStatusItem 
+                        icon={Network} 
+                        name="API Gateway" 
+                        detail={`Uptime: ${(metrics.uptime / 3600).toFixed(1)}h`}
+                        status="healthy" 
+                    />
+                    <ServiceStatusItem 
+                        icon={Cpu} 
+                        name="Process Manager" 
+                        detail={`${metrics.process_count} Active Threads`}
+                        status="healthy" 
+                    />
+              </CardContent>
+          </Card>
+          {/* 3. Disk Usage (Pie Chart) */}
+          <Card className="col-span-1 lg:col-span-2 border bg-card shadow-sm">
+              <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                      <HardDrive className="w-5 h-5 text-primary" />
                       Storage Distribution
                   </CardTitle>
-                  <CardDescription>{metrics.disk_used}GB Used of {metrics.disk_total}GB Total</CardDescription>
+                  <CardDescription>{metrics.disk_used.toFixed(1)}GB Used of {metrics.disk_total.toFixed(0)}GB Total</CardDescription>
               </CardHeader>
               <CardContent className="h-[250px] relative">
                    <ResponsiveContainer width="100%" height="100%">
@@ -297,62 +330,29 @@ const SystemHealthPage = () => {
                                 outerRadius={80}
                                 paddingAngle={5}
                                 dataKey="value"
-                            >
-                                <Cell key="used" fill="hsl(var(--primary))" />
-                                <Cell key="free" fill="hsl(var(--muted))" opacity={0.3} />
+                            > 
+                                <Cell key="used" fill={COLORS.chart2} />
+                                <Cell key="free" fill={COLORS.chart1} opacity={0.3} />
                             </Pie>
                             <Tooltip 
                                 formatter={(value: number) => [`${value} GB`, 'Size']}
-                                contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                                contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
                             />
                             <Legend verticalAlign="bottom" height={36}/>
                         </PieChart>
                    </ResponsiveContainer>
                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                        <span className="text-2xl font-bold">{metrics.disk_percent}%</span>
+                        <span className="text-2xl font-bold">{metrics.disk_percent.toFixed(0)}%</span>
                         <p className="text-[10px] text-muted-foreground">Used</p>
                    </div>
               </CardContent>
           </Card>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-           {/* 3. Service Status List */}
-           <Card className="col-span-1 glass border-primary/10 h-full">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                        <Server className="w-4 h-4 text-primary" />
-                        Platform Services
-                    </CardTitle>
-                    <CardDescription>Operational status of core components.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <ServiceStatusItem 
-                        icon={Database} 
-                        name="Helper DB (SQLite)" 
-                        detail={`${metrics.db_size_mb} MB Storage`} 
-                        status="healthy" 
-                    />
-                    <ServiceStatusItem 
-                        icon={Activity} 
-                        name="API Gateway" 
-                        detail={`Uptime: ${(metrics.uptime / 3600).toFixed(1)}h`} 
-                        status="healthy" 
-                    />
-                    <ServiceStatusItem 
-                        icon={Cpu} 
-                        name="Process Manager" 
-                        detail={`${metrics.process_count} Active Threads`} 
-                        status="healthy" 
-                    />
-                </CardContent>
-           </Card>
-
+          
            {/* 4. Network Traffic (Bar Chart) */}
-           <Card className="col-span-1 lg:col-span-2 glass border-primary/10">
+           <Card className="col-span-1 lg:col-span-2 border bg-card shadow-sm">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                        <Network className="w-4 h-4 text-primary" />
+                    <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                        <Network className="w-5 h-5 text-primary" />
                         Network IO
                     </CardTitle>
                     <CardDescription>Total data transfer since boot.</CardDescription>
@@ -360,16 +360,17 @@ const SystemHealthPage = () => {
                 <CardContent className="h-[250px]">
                      <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={networkData} layout="vertical" margin={{ left: 20 }}>
-                              <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.1} />
+                              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.1} />
                               <XAxis type="number" hide />
                               <YAxis dataKey="name" type="category" width={120} tick={{fontSize: 12}} interval={0} axisLine={false} tickLine={false} />
                               <Tooltip 
                                   cursor={{fill: 'transparent'}}
-                                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                                  contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                                  formatter={(val: number) => [`${val.toFixed(2)} MB`, "Data"]}
                               />
-                              <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} barSize={30}>
-                                  <Cell fill="#3b82f6" /> {/* Upload/Sent blue */}
-                                  <Cell fill="#10b981" /> {/* Download/Recv green */}
+                              <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
+                                  <Cell key="upload" fill="#3b82f6" /> {/* Upload/Sent blue */}
+                                  <Cell key="download" fill="#10b981" /> {/* Download/Recv green */}
                               </Bar>
                           </BarChart>
                      </ResponsiveContainer>

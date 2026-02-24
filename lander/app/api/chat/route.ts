@@ -2,7 +2,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { streamText } from 'ai';
 
 export async function POST(req: Request) {
-  const { prompt } = await req.json();
+  const { messages } = await req.json();
 
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
@@ -17,6 +17,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: groq('llama-3.3-70b-versatile'),
+    messages,
     system: `You are "Fortress", the official AI assistant for the Fortress Documentation.
     Your sole purpose is to help users understand, install, configure, and use the Fortress AI Platform.
     
@@ -34,7 +35,6 @@ export async function POST(req: Request) {
     - Supported models: Llama 3, Mistral, Gemma.
     
     Answer the user's question clearly and helpfuly based on these facts.`,
-    prompt,
   });
 
   return result.toTextStreamResponse();

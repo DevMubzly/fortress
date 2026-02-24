@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Bot, FileText, Layout, Loader2, MessageSquare, Send, Sparkles, X } from "lucide-react";
-import { useCompletion } from "@ai-sdk/react";
+import { useChat } from "@ai-sdk/react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,50 +18,32 @@ import {
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-}
-
 export function DocsAIPane() {
   const [open, setOpen] = React.useState(false);
-  const [query, setQuery] = React.useState("");
-  const [messages, setMessages] = React.useState<Message[]>([]);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   
-  // Use Vercel AI SDK for completion
-  const { completion, complete, isLoading, stop, error } = useCompletion({
+  // Use Vercel AI SDK useChat
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput, append } = useChat({
     api: "/api/chat",
-    onFinish: (prompt, completion) => {
-      setMessages(prev => [
-        ...prev, 
-        { id: Date.now().toString(), role: 'assistant', content: completion }
-      ]);
-    }
   });
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit();
+      // Ensure we actually submit efficiently
+      if (!input.trim() || isLoading) return;
+      
+      // Native form submission simulation or direct call
+      const form = e.currentTarget.closest('form');
+      if (form) form.requestSubmit();
     }
-  };
-
-  const handleSubmit = async () => {
-    if (!query.trim() || isLoading) return;
-    const userMsg = query;
-    setQuery("");
-    setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', content: userMsg }]);
-    await complete(userMsg);
   };
 
   React.useEffect(() => {
     if (scrollRef.current) {
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, completion, isLoading]);
+  }, [messages, isLoading]);
   
   const suggestedQuestions = [
     "How do I install Fortress?",
@@ -69,6 +51,14 @@ export function DocsAIPane() {
     "How to configure API keys?",
     "Explain the security architecture",
   ];
+
+  const handleSuggestedClick = async (q: string) => {
+      // For useChat, we can use append to add a user message and trigger response
+      await append({
+          role: 'user',
+          content: q
+      });
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -214,27 +204,8 @@ export function DocsAIPane() {
                 </div>
             )}
 
-            {(isLoading || completion.length > 0) && ( // Show if loading OR if we have completion content (even if loading finished)
-                // BUT only show this block if we actually have completion content to show, OR if we want to show loading state inside? 
-                // Ah, the logic was (isLoading && completion). 
-                // If loading finished, completion is non-empty, but isLoading is false. Wait.
-                // If loading finished, the message is added to `messages` state in `onFinish`.
-                // So this block is ONLY for the ephemeral streaming message.
-                
-                // Correction: The `onFinish` handler adds the message to `messages`. 
-                // While streaming, `messages` does NOT contain the current response yet.
-                // So we need to display `completion` while streaming.
-                // Once finished, `onFinish` runs, adds to `messages`, and `completion` resets? 
-                // No, `useCompletion` keeps the last completion until next call? 
-                
-                // Actually `useCompletion` does NOT clear completion automatically on finish.
-                // But `onFinish` appends it to `messages`.
-                // So we have a duplicate if we render `completion` after finish.
-                
-                // Fix: Only render `completion` when `isLoading` is true AND `completion` has content.
-                // Once `isLoading` becomes false (finished), `onFinish` runs, updates `messages`, and we stop rendering this block.
-                
-                (isLoading && completion.length > 0) && (
+            {/* Streaming Message (Assistant only) - Show when we have content, whether loading or not (until it moves to messages) */}
+            {completion.length > 0 && (
                 <div className="flex w-full gap-2 mb-4 justify-start animate-fade-in">
                   <div className="bg-white border p-2 rounded-lg shrink-0 h-8 w-8 flex items-center justify-center shadow-sm">
                     <Sparkles className="h-4 w-4 text-blue-600 animate-pulse" />
@@ -250,7 +221,7 @@ export function DocsAIPane() {
                     </div>
                   </div>
                 </div>
-            ))}
+            )}
             
             {/* Loading Indicator (Waiting for start) */}
             {isLoading && completion.length === 0 && (

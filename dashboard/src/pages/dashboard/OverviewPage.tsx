@@ -167,17 +167,25 @@ const OverviewPage = () => {
     <div className="space-y-6 pt-4 animate-in fade-in duration-500 pb-8">
         
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Overview</h2>
+                <h2 className="text-3xl font-bold tracking-tight text-primary">Overview</h2>
                 <p className="text-muted-foreground mt-1">Real-time system insights and performance metrics.</p>
             </div>
-            <div className="flex items-center gap-2">
-                <StatusIndicator 
-                    label="AI Core" 
-                    status={metrics?.ollama_status ? "healthy" : "critical"} 
-                    value={metrics?.ollama_status ? "Online" : "Issues"}
-                />
+            
+            <div className="flex items-center gap-3">
+                {/* System Status Indicators */}
+                <div className="flex items-center space-x-2 bg-background border px-3 py-1.5 rounded-full shadow-sm">
+                   <div className={`h-2.5 w-2.5 rounded-full animate-pulse ${metrics?.ollama_status ? "bg-emerald-500" : "bg-red-500"}`} />
+                   <span className="text-xs font-medium">
+                        AI Core: <span className={metrics?.ollama_status ? "text-emerald-600" : "text-red-600"}>
+                            {metrics?.ollama_status ? "Healthy" : "Critical"}
+                        </span>
+                   </span>
+                </div>
+
+                <div className="h-6 w-px bg-border mx-1 hidden md:block" />
+
                 <Button onClick={() => navigate("/monitoring")} size="sm" variant="outline" className="hidden md:flex gap-2">
                     <Activity className="h-4 w-4" />
                     Monitoring
