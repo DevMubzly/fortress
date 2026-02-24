@@ -18,11 +18,11 @@ export default function DocsLayout({
   ];
 
   return (
-    <div className="container relative mx-auto flex min-h-screen w-full flex-col px-4 md:px-6">
-      <div className="flex flex-1 flex-col py-8 md:grid md:grid-cols-[220px_1fr] md:gap-10 lg:grid-cols-[240px_1fr] lg:py-12">
-        <aside className="fixed top-24 z-30 hidden h-[calc(100vh-6rem)] w-full shrink-0 overflow-y-auto border-r border-gray-200 pr-6 md:sticky md:block">
+    <div className="w-full relative flex min-h-screen flex-col px-4 md:px-8">
+      <div className="flex flex-1 flex-col py-8 md:grid md:grid-cols-[250px_1fr] md:gap-8 lg:py-10">
+        <aside className="fixed top-24 z-30 hidden h-[calc(100vh-6rem)] w-[250px] shrink-0 overflow-y-auto border-r border-gray-200 pr-4 md:sticky md:block">
           <DocsSearch />
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 pt-4">
             <h4 className="mb-2 rounded-md px-2 py-1 text-sm font-semibold">
               Documentation
             </h4>
