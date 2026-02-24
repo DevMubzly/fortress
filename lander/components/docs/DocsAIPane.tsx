@@ -52,15 +52,41 @@ export function DocsAIPane() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="shrink-0">
-          <Sparkles className="h-4 w-4" />
+        <Button variant="outline" size="icon" className="shrink-0 text-blue-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 28 28">
+                <path
+                  className="fill-current opacity-80"
+                  fillRule="evenodd"
+                  d="M15.052 0c6.914.513 12.434 6.033 12.947 12.947h-5.015a7.932 7.932 0 0 1-7.932-7.932V0Zm-2.105 22.985V28C6.033 27.487.513 21.967 0 15.053h5.015a7.932 7.932 0 0 1 7.932 7.932Z"
+                  clipRule="evenodd"
+                />
+                <path
+                  className="fill-current opacity-40"
+                  fillRule="evenodd"
+                  d="M0 12.947C.513 6.033 6.033.513 12.947 0v5.015a7.932 7.932 0 0 1-7.932 7.932H0Zm22.984 2.106h5.015C27.486 21.967 21.966 27.487 15.052 28v-5.015a7.932 7.932 0 0 1 7.932-7.932Z"
+                  clipRule="evenodd"
+                />
+            </svg>
           <span className="sr-only">Ask AI</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-full sm:w-[540px] sm:max-w-none flex flex-col p-0 gap-0">
+      <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-none flex flex-col p-0 gap-0">
         <SheetHeader className="px-6 py-4 border-b">
           <SheetTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 28 28">
+                <path
+                  className="fill-blue-500"
+                  fillRule="evenodd"
+                  d="M15.052 0c6.914.513 12.434 6.033 12.947 12.947h-5.015a7.932 7.932 0 0 1-7.932-7.932V0Zm-2.105 22.985V28C6.033 27.487.513 21.967 0 15.053h5.015a7.932 7.932 0 0 1 7.932 7.932Z"
+                  clipRule="evenodd"
+                />
+                <path
+                  className="fill-blue-300"
+                  fillRule="evenodd"
+                  d="M0 12.947C.513 6.033 6.033.513 12.947 0v5.015a7.932 7.932 0 0 1-7.932 7.932H0Zm22.984 2.106h5.015C27.486 21.967 21.966 27.487 15.052 28v-5.015a7.932 7.932 0 0 1 7.932-7.932Z"
+                  clipRule="evenodd"
+                />
+            </svg>
             Fortress AI Assistant
           </SheetTitle>
           <SheetDescription>
@@ -73,7 +99,20 @@ export function DocsAIPane() {
             {!completion && !isLoading && (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-8">
                 <div className="bg-muted/50 p-4 rounded-full">
-                  <Bot className="h-8 w-8 text-muted-foreground" />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 28 28">
+                    <path
+                        className="fill-blue-500"
+                        fillRule="evenodd"
+                        d="M15.052 0c6.914.513 12.434 6.033 12.947 12.947h-5.015a7.932 7.932 0 0 1-7.932-7.932V0Zm-2.105 22.985V28C6.033 27.487.513 21.967 0 15.053h5.015a7.932 7.932 0 0 1 7.932 7.932Z"
+                        clipRule="evenodd"
+                    />
+                    <path
+                        className="fill-blue-300"
+                        fillRule="evenodd"
+                        d="M0 12.947C.513 6.033 6.033.513 12.947 0v5.015a7.932 7.932 0 0 1-7.932 7.932H0Zm22.984 2.106h5.015C27.486 21.967 21.966 27.487 15.052 28v-5.015a7.932 7.932 0 0 1 7.932-7.932Z"
+                        clipRule="evenodd"
+                    />
+                  </svg>
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">How can I help you?</h3>

@@ -1,14 +1,18 @@
+"use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { DocsSearch } from "@/components/docs/DocsSearch";
+import { cn } from "@/lib/utils";
 
 export default function DocsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const sidebarItems = [
-    { title: "Introduction", href: "/docs" },
+    { title: "Introduction", href: "/docs/intro" },
     { title: "Installation", href: "/docs/installation" },
     { title: "Architecture", href: "/docs/architecture" },
     { title: "Administration", href: "/docs/administration" },
@@ -30,15 +34,20 @@ export default function DocsLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex w-full items-center rounded-md border border-transparent px-2 py-1 text-sm font-medium text-gray-500 hover:text-gray-900 hover:underline"
+                className={cn(
+                  "group flex w-full items-center rounded-md border border-transparent px-2 py-1.5 text-sm font-medium transition-colors hover:text-foreground",
+                  pathname === item.href || (item.href === "/docs/intro" && pathname === "/docs")
+                    ? "font-semibold text-foreground bg-muted"
+                    : "text-muted-foreground hover:bg-muted/50"
+                )}
               >
                 {item.title}
               </Link>
             ))}
           </div>
         </aside>
-        <main className="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
-          <div className="mx-auto w-full min-w-0">
+        <main className="relative py-10 lg:py-12">
+          <div className="mx-auto w-full min-w-0 px-4 md:px-8 lg:px-12 xl:px-16">
              {children}
           </div>
         </main>

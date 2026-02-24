@@ -41,17 +41,17 @@ export function DocsPage({ title, description, toc = [], children }: DocsPagePro
 
         <hr className="my-10 border-slate-200 dark:border-slate-800" />
 
-        <div className="flex justify-between items-center pt-6">
+        <div className="flex justify-between items-center pt-8">
           {prev ? (
             <Link
               href={prev.href}
-              className="group flex flex-col gap-1 rounded-lg border p-4 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors max-w-[45%]"
+              className="group flex flex-col gap-2 rounded-xl border p-6 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors w-full max-w-[48%]"
             >
               <div className="flex items-center gap-1 text-sm text-muted-foreground group-hover:text-foreground">
                 <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                 Previous
               </div>
-              <div className="font-medium text-foreground">{prev.title}</div>
+              <div className="font-semibold text-lg text-foreground">{prev.title}</div>
             </Link>
           ) : (
             <div />
@@ -60,13 +60,13 @@ export function DocsPage({ title, description, toc = [], children }: DocsPagePro
           {next && (
             <Link
               href={next.href}
-              className="group flex flex-col gap-1 items-end rounded-lg border p-4 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors max-w-[45%] text-right"
+              className="group flex flex-col gap-2 items-end rounded-xl border p-6 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors w-full max-w-[48%] text-right"
             >
               <div className="flex items-center gap-1 text-sm text-muted-foreground group-hover:text-foreground">
                 Next
                 <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </div>
-              <div className="font-medium text-foreground">{next.title}</div>
+              <div className="font-semibold text-lg text-foreground">{next.title}</div>
             </Link>
           )}
         </div>
