@@ -5,7 +5,7 @@ import { Resend } from 'resend'
 
 // Initialize Resend conditionally or inside the function to avoid init errors
 // if the env var is missing during build/startup
-const resendApiKey = process.env.NEXT_RESEND_API_KEY || 're_123'; 
+const resendApiKey = process.env.NEXT_RESEND_API_KEY; 
 const resend = new Resend(resendApiKey)
 
 export async function submitContact(formData: {
@@ -45,8 +45,8 @@ export async function submitContact(formData: {
   // Send Email
   try {
     const { error } = await resend.emails.send({
-      from: 'Fortress <onboarding@resend.dev>',
-      to: [formData.email],
+      from: 'Fortress <onboarding@fortress-stack.tech>',
+      to: [formData.email], // Send to the person applying
       subject: 'Welcome to Fortress - Application Received',
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">

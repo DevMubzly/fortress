@@ -54,6 +54,7 @@ const adminNavItems: NavItem[] = [
   { id: "system-health", title: "System Health", icon: Activity, url: "/system-health" },
   { id: "identity-access", title: "Identity & Access", icon: Users, url: "/identity-access" },
   { id: "audit-logs", title: "Audit Logs", icon: ScrollText, url: "/audit-logs", staffOnly: true },
+  { id: "license-management", title: "License Management", icon: Shield, url: "/license-management" },
 ];
 
 const staffNavItems: NavItem[] = [

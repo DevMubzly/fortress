@@ -1,0 +1,10 @@
+services:
+  fortress:
+    build: .
+    image: mubzly/fortress:latest
+    ports:
+      - "80:80"
+      - "8000:8000" # Expose backend port directly just in case, though Nginx on 80 proxies to it
+    volumes:
+      - ./data:/app/backend/data
+    restart: unless-stopped

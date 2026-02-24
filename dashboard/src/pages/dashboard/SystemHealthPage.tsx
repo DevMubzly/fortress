@@ -181,9 +181,9 @@ const SystemHealthPage = () => {
       </div>
 
       {/* Primary Metrics Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 overflow-hidden rounded-xl border bg-background shadow-sm md:grid-cols-4 mb-6">
           
-          <div className="p-6 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col justify-between hover:bg-muted/50 transition-colors">
+          <div className="p-6 md:border-r hover:bg-muted/50 transition-colors">
              <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                  <span className="text-sm font-medium text-muted-foreground">CPU Usage</span>
                  <Cpu className="h-4 w-4 text-muted-foreground" />
@@ -199,7 +199,7 @@ const SystemHealthPage = () => {
              </div>
           </div>
 
-          <div className="p-6 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col justify-between hover:bg-muted/50 transition-colors">
+          <div className="p-6 md:border-r hover:bg-muted/50 transition-colors">
              <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                  <span className="text-sm font-medium text-muted-foreground">Memory Usage</span>
                  <Activity className="h-4 w-4 text-muted-foreground" />
@@ -215,7 +215,7 @@ const SystemHealthPage = () => {
              </div>
           </div>
           
-          <div className="p-6 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col justify-between hover:bg-muted/50 transition-colors">
+          <div className="p-6 md:border-r hover:bg-muted/50 transition-colors">
              <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                  <span className="text-sm font-medium text-muted-foreground">Disk I/O</span>
                  <HardDrive className="h-4 w-4 text-muted-foreground" />
@@ -231,7 +231,7 @@ const SystemHealthPage = () => {
              </div>
           </div>
 
-           <div className="p-6 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col justify-between hover:bg-muted/50 transition-colors">
+           <div className="p-6 hover:bg-muted/50 transition-colors">
              <div className="flex flex-row items-center justify-between space-y-0 pb-2">
                  <span className="text-sm font-medium text-muted-foreground">Network</span>
                  <Network className="h-4 w-4 text-muted-foreground" />
@@ -251,6 +251,10 @@ const SystemHealthPage = () => {
                  </div>
              </div>
           </div>
+      </div>
+          
+      {/* Chart Section Grid - Was previously primary metrics grid, now separate charts grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
 
           {/* 1. CPU & RAM History (Line Chart) */}
           <Card className="col-span-1 lg:col-span-3 border bg-card shadow-sm">

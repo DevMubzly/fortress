@@ -111,7 +111,7 @@ export default function ContactSalesModal() {
     // Simulate delay for UI effect before closing
     setTimeout(() => {
       closeModal();
-    }, 3000);
+    }, 4000);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

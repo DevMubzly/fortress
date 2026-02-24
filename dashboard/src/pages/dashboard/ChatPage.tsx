@@ -382,10 +382,12 @@ const ChatPage = () => {
                         {msg.role === "user" ? <User className="w-5 h-5" /> : <Shield className="w-5 h-5 text-primary" />}
                       </div>
                       <div className={cn(
-                        "rounded-xl p-4 text-sm whitespace-pre-wrap shadow-sm",
+                        "rounded-xl p-4 text-sm shadow-sm overflow-hidden",
                         msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-card border"
                       )}>
-                        {msg.content}
+                        {msg.content.split('\n').map((line, i) => (
+                           <p key={i} className="min-h-[1.2em]">{line}</p>
+                        ))}
                       </div>
                    </div>
                 </div>

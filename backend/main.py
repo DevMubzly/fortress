@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import auth, setup, system, models, apikeys, stats, users, chat, audit
+from backend.routers import auth, setup, system, models, apikeys, stats, users, chat, audit, admin
 from backend.database import init_db
 
 # Initialize database
@@ -25,6 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(setup.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(system.router, prefix="/api")
 app.include_router(models.router, prefix="/api")

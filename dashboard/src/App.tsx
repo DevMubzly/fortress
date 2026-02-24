@@ -20,6 +20,7 @@ import SupportPage from "./pages/dashboard/SupportPage";
 import DocumentationPage from "./pages/dashboard/DocumentationPage";
 import ReleaseNotesPage from "./pages/dashboard/ReleaseNotesPage";
 import AboutPage from "./pages/dashboard/AboutPage";
+import LicenseManagementPage from "./pages/dashboard/LicenseManagementPage";
 import MainLayout from "./layouts/MainLayout";
 import NotFound from "./pages/NotFound";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -53,6 +54,7 @@ const App = () => (
                 <Route path="/model-hub" element={<ModelHubPage />} />
                 <Route path="/apikeys" element={<ApiKeysPage />} />
                 <Route path="/audit-logs" element={<AuditLogsPage />} />
+                <Route path="/license-management" element={<LicenseManagementPage />} />
                 <Route path="/identity-access" element={<IdentityAccessPage />} />
                 <Route path="/system-health" element={<SystemHealthPage />} />
                 <Route path="/chat" element={<ChatPage />} />

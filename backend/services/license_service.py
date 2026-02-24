@@ -232,6 +232,59 @@ class LicenseService:
             }
         return None
 
+
+    def get_all_licenses(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM licenses ORDER BY rowid DESC")
+        rows = cursor.fetchall()
+        
+        licenses = []
+        for row in rows:
+            try:
+                raw_data = json.loads(row["raw_license"]) if row["raw_license"] else {}
+                issued_at_str = raw_data.get("issuedAt") if isinstance(raw_data, dict) else None
+                issued_at = datetime.fromisoformat(issued_at_str.replace('Z', '+00:00')).isoformat() if issued_at_str else None
+                
+                features = json.loads(row["features"]) if row["features"] else []
+                expires_at_str = row["expires_at"]
+                
+                # Handle expires_at properly (could be already formatted string or date object depending on SQLite context, but typically string in SQLite)
+                # If row factory is active, row access by name works.
+                expires_at = datetime.fromisoformat(expires_at_str.replace('Z', '+00:00')) if expires_at_str else None
+                
+                activated_at_str = row["activated_at"]
+                activated_at = datetime.fromisoformat(activated_at_str.replace('Z', '+00:00')) if activated_at_str else None
+                
+                licenses.append({
+                    "id": row["id"],
+                    "client_name": row["client_name"],
+                    "tier": row["tier"],
+                    "features": features,
+                    "max_users": row["max_gpus"],
+                    "expires_at": expires_at.isoformat() if expires_at else None,
+                    "fingerprint": row["fingerprint"],
+                    "raw_license": row["raw_license"],
+                    "activated_at": activated_at.isoformat() if activated_at else None,
+                    "issued_at": issued_at
+                })
+            except Exception as e:
+                # Handle parsing errors gracefully
+                print(f"Error parsing license row {row['id']}: {e}")
+                continue
+
+        conn.close()
+        return licenses
+
+    def delete_license(self, license_id: str):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM licenses WHERE id = ?", (license_id,))
+        conn.commit()
+        deleted = cursor.rowcount > 0
+        conn.close()
+        return deleted
+
     def bind_machine_fingerprint(self, fingerprint: str):
         conn = get_db_connection()
         cursor = conn.cursor()

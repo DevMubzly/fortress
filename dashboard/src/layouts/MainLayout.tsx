@@ -1,4 +1,4 @@
-import { Outlet, useLocation, Navigate } from "react-router-dom";
+import { Outlet, useLocation, Navigate, useNavigate } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,10 @@ import { useEffect, useState } from "react";
 import { FirstLoginModal } from "@/components/FirstLoginModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationCenter } from "@/components/NotificationCenter";
+import { useLicense } from "@/contexts/LicenseContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ShieldAlert } from "lucide-react";
 
 // Route title mapping
 const routeTitles: Record<string, string> = {
@@ -44,8 +48,22 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const MainContent = () => {
   const { isCollapsed } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
   const pageTitle = routeTitles[location.pathname] || "Dashboard";
   const [showWelcome, setShowWelcome] = useState(false);
+  const { license, isLoading: isLicenseLoading } = useLicense();
+  const { user } = useAuth();
+  
+  const isLicenseExpired = license?.status === "expired" || license?.status === "invalid";
+  const [showLicenseBlocker, setShowLicenseBlocker] = useState(false);
+
+  useEffect(() => {
+    if (!isLicenseLoading && isLicenseExpired) {
+        setShowLicenseBlocker(true);
+    } else {
+        setShowLicenseBlocker(false);
+    }
+  }, [isLicenseLoading, isLicenseExpired]);
 
   useEffect(() => {
     // Check if we just completed setup
@@ -58,10 +76,49 @@ const MainContent = () => {
     }
   }, []);
 
+  const handleLicenseAction = () => {
+      // If user is admin, go to license management
+      // If user is not admin, just close (but it will reopen if we don't fix it? or maybe show contact info)
+      if (user?.role === "admin") {
+          navigate("/dashboard/admin/licenses"); // Assuming route exists or /admin/licenses
+          // We need to allow navigation to this page even if blocked?
+          // The blocker is "on top" but we can check location.pathname to allow it.
+      }
+  };
+
+  // Allow access to license management page even if expired so admin can fix it
+  const isLicensePage = location.pathname.includes("/admin/licenses") || location.pathname.includes("/license-management");
+
   return (
     <ProtectedRoute>
     <div className="h-screen bg-background overflow-hidden flex flex-col">
       <FirstLoginModal open={showWelcome} onOpenChange={setShowWelcome} />
+      
+      <Dialog open={showLicenseBlocker && !isLicensePage} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+                <div className="mx-auto bg-destructive/10 p-3 rounded-full mb-2 w-fit">
+                    <ShieldAlert className="h-6 w-6 text-destructive" />
+                </div>
+                <DialogTitle className="text-center">License Expired</DialogTitle> {/* Fixed: Removed extra 'Title' */}
+                <DialogDescription className="text-center">
+                    Your Fortress license has expired. Please contact your administrator or renew your license to continue accessing the platform.
+                </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="sm:justify-center">
+                {user?.role === "admin" ? (
+                    <Button onClick={() => navigate("/license-management")} className="w-full">
+                        Manage License
+                    </Button>
+                ) : (
+                    <Button variant="outline" className="w-full" disabled>
+                        Contact Admin
+                    </Button>
+                )}
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <AppSidebar />
       
       {/* Fixed Header - aligned with sidebar header */}

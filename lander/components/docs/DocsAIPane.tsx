@@ -23,19 +23,25 @@ export function DocsAIPane() {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   
   // Use Vercel AI SDK useChat
+  // @ts-ignore
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput, append } = useChat({
+    // @ts-ignore
     api: "/api/chat",
   });
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
+      if (!(input || "").trim() || isLoading) {
+          e.preventDefault();
+          return;
+      }
+      // Let the textarea behave normally if we want newlines with Shift+Enter
+      // But here we want submit on Enter
       e.preventDefault();
-      // Ensure we actually submit efficiently
-      if (!input.trim() || isLoading) return;
       
-      // Native form submission simulation or direct call
-      const form = e.currentTarget.closest('form');
-      if (form) form.requestSubmit();
+      // Create a synthetic event or just call handleSubmit
+      const fakeEvent = { preventDefault: () => {} } as React.FormEvent<HTMLFormElement>;
+      handleSubmit(fakeEvent);
     }
   };
 
@@ -44,7 +50,7 @@ export function DocsAIPane() {
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isLoading]);
-  
+
   const suggestedQuestions = [
     "How do I install Fortress?",
     "What models are supported?",
@@ -81,7 +87,7 @@ export function DocsAIPane() {
           <span className="sr-only">Ask AI</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:w-[540px] sm:max-w-none flex flex-col p-0 gap-0">
+      <SheetContent side="right" className="w-full sm:w-135 sm:max-w-none flex flex-col p-0 gap-0">
         <SheetHeader className="px-6 py-4 border-b">
           <SheetTitle className="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 28 28">
@@ -107,7 +113,7 @@ export function DocsAIPane() {
         
         <div className="flex-1 overflow-hidden flex flex-col bg-slate-50/50">
           <ScrollArea className="flex-1 p-6" ref={scrollRef}>
-            {messages.length === 0 && !completion && !isLoading && (
+            {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-8">
                 <div className="bg-muted/50 p-4 rounded-full">
                   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 28 28">
@@ -138,14 +144,7 @@ export function DocsAIPane() {
                       key={q} 
                       variant="outline" 
                       className="justify-start text-left h-auto py-2 px-3 text-sm hover:bg-blue-50/50 hover:text-blue-600 hover:border-blue-200 transition-colors"
-                      onClick={() => {
-                        setQuery(q);
-                        const userMsg = q;
-                        // Manual submit to ensure state updates correctly
-                        setQuery("");
-                        setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', content: userMsg }]);
-                        complete(userMsg);
-                      }}
+                      onClick={() => handleSuggestedClick(q)}
                     >
                       <MessageSquare className="mr-2 h-3 w-3 opacity-50" />
                       {q}
@@ -156,7 +155,7 @@ export function DocsAIPane() {
             )}
 
             <div className="flex flex-col space-y-6">
-            {messages.map((msg) => (
+            {messages.map((msg: any) => (
                 <div key={msg.id} className={cn("flex w-full gap-2 mb-4", msg.role === 'user' ? "justify-end" : "justify-start")}>
                   {msg.role === 'assistant' && (
                     <div className="bg-white border p-2 rounded-lg shrink-0 h-8 w-8 flex items-center justify-center shadow-sm">
@@ -173,8 +172,8 @@ export function DocsAIPane() {
                             ? "bg-white rounded-tl-sm text-foreground" 
                             : "bg-blue-600 text-white border-transparent rounded-tr-sm" // User bubble
                     )}>
-                        <div className="prose prose-sm dark:prose-invert max-w-none break-words leading-relaxed text-inherit">
-                             {msg.content.split('\n').map((line, i) => (
+                        <div className="prose prose-sm dark:prose-invert max-w-none wrap-break-word leading-relaxed text-inherit">
+                             {(msg.content || "").split('\n').map((line: string, i: number) => (
                                 <p key={i} className="mb-0 min-h-[1em]">{line}</p>
                               ))}
                         </div>
@@ -204,27 +203,8 @@ export function DocsAIPane() {
                 </div>
             )}
 
-            {/* Streaming Message (Assistant only) - Show when we have content, whether loading or not (until it moves to messages) */}
-            {completion.length > 0 && (
-                <div className="flex w-full gap-2 mb-4 justify-start animate-fade-in">
-                  <div className="bg-white border p-2 rounded-lg shrink-0 h-8 w-8 flex items-center justify-center shadow-sm">
-                    <Sparkles className="h-4 w-4 text-blue-600 animate-pulse" />
-                  </div>
-                  <div className="flex flex-col max-w-[80%] items-start">
-                    <span className="text-xs font-medium text-muted-foreground mb-1 px-1">Fortress</span>
-                    <div className="text-sm p-3 rounded-2xl shadow-sm border bg-white rounded-tl-sm text-foreground">
-                        <div className="prose prose-sm dark:prose-invert max-w-none break-words leading-relaxed text-inherit">
-                            {completion.split('\n').map((line, i) => (
-                                <p key={i} className="mb-0 min-h-[1em]">{line}</p>
-                            ))}
-                        </div>
-                    </div>
-                  </div>
-                </div>
-            )}
-            
             {/* Loading Indicator (Waiting for start) */}
-            {isLoading && completion.length === 0 && (
+            {isLoading && (messages.length === 0 || messages[messages.length - 1].role === 'user') && (
                  <div className="flex w-full gap-2 mb-4 justify-start animate-fade-in">
                     <div className="bg-white border p-2 rounded-lg shrink-0 h-8 w-8 flex items-center justify-center shadow-sm">
                         <Sparkles className="h-4 w-4 text-blue-600 animate-spin" />
@@ -253,16 +233,16 @@ export function DocsAIPane() {
             <div className="relative flex gap-2">
               <Textarea
                 placeholder="Ask a question about Fortress..."
-                className="min-h-[50px] max-h-[150px] w-full resize-none py-3 px-4 bg-slate-50 focus-visible:ring-1 border-slate-200 rounded-xl shadow-inner"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                className="min-h-12.5 max-h-37.5 w-full resize-none py-3 px-4 bg-slate-50 focus-visible:ring-1 border-slate-200 rounded-xl shadow-inner"
+                value={input || ""}
+                onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
               />
               <Button 
                 size="icon" 
-                className={cn("h-[50px] w-[50px] shrink-0 rounded-xl shadow-sm transition-all", query.trim() ? "bg-blue-600 hover:bg-blue-700" : "bg-slate-200 text-slate-400 hover:bg-slate-300")}
+                className={cn("h-12.5 w-12.5 shrink-0 rounded-xl shadow-sm transition-all", (input || "").trim() ? "bg-blue-600 hover:bg-blue-700" : "bg-slate-200 text-slate-400 hover:bg-slate-300")}
                 onClick={handleSubmit}
-                disabled={isLoading || !query.trim()}
+                disabled={isLoading || !(input || "").trim()}
               >
                 {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                 <span className="sr-only">Send</span>
