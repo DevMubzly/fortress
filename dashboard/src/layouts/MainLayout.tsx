@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import BottomTray from "@/components/BottomTray";
 import { useEffect, useState } from "react";
 import { WelcomeModal } from "@/components/WelcomeModal";
-
+import { useAuth } from "@/contexts/AuthContext";
 
 // Route title mapping
 const routeTitles: Record<string, string> = {
@@ -26,14 +26,9 @@ const routeTitles: Record<string, string> = {
 };
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const { isAuthenticated, isLoading } = useAuth();
 
-  useEffect(() => {
-    const token = localStorage.getItem("fortress_token");
-    setIsAuthenticated(!!token);
-  }, []);
-
-  if (isAuthenticated === null) {
+  if (isLoading) {
       // Optional: loading spinner
     return <div className="h-screen w-full flex items-center justify-center bg-background">Loading...</div>; 
   }

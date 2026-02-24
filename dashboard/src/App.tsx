@@ -25,8 +25,8 @@ import NotFound from "./pages/NotFound";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { DownloadProvider } from "@/contexts/DownloadContext";
 import { LicenseProvider } from "@/contexts/LicenseContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
-import { LicenseProvider } from "@/contexts/LicenseContext";
 
 const queryClient = new QueryClient();
 
@@ -40,8 +40,9 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <ErrorBoundary>
-              <Routes>
+            <AuthProvider>
+              <ErrorBoundary>
+                <Routes>
                 <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<LoginPage />} />
               
@@ -64,10 +65,11 @@ const App = () => (
               </Route>
   
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </ErrorBoundary>
-        </BrowserRouter>
-      </TooltipProvider>
+              </Routes>
+              </ErrorBoundary>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
     </NotificationProvider>
