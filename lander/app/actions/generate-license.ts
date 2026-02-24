@@ -1,6 +1,7 @@
 "use server";
 
 import { PRIVATE_KEY } from "@/lib/keys";
+import { createClient } from "@/lib/supabase-server";
 import crypto from "crypto";
 
 export async function generateLicenseAction(data: {
@@ -48,6 +49,26 @@ export async function generateLicenseAction(data: {
 
     // Return the base64 encoded license file content
     const licenseFileContent = Buffer.from(JSON.stringify(finalLicense)).toString("base64");
+
+    // Save to Supabase
+    const supabase = await createClient();
+    const { error } = await supabase.from('licenses').insert({
+      id: licenseId,
+      organization: data.organization,
+      tier: data.tier,
+      features: data.features,
+      max_users: data.maxUsers,
+      valid_until: validUntil,
+      issued_at: issuedAt,
+      revoked: false,
+      active: true,
+      raw_license: licenseFileContent
+    });
+
+    if (error) {
+       console.error("Failed to persist license:", error);
+       return { success: false, error: "Database error: " + error.message };
+    }
 
     return { success: true, license: licenseFileContent };
   } catch (error) {

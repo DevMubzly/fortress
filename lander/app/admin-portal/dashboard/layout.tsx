@@ -9,6 +9,7 @@ import {
   Bell, 
   LogOut,
   ChevronDown,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 const navItems = [
   { path: '/admin-portal/dashboard/analytics', label: 'Global Analytics', icon: BarChart3 },
   { path: '/admin-portal/dashboard/organizations', label: 'Organizations', icon: Building2 },
+  { path: '/admin-portal/dashboard/licenses', label: 'Issued Licenses', icon: Shield },
   { path: '/admin-portal/dashboard/leads', label: 'Lead Inbox', icon: Inbox },
   { path: '/admin-portal/dashboard/renewals', label: 'Renewal Alerts', icon: Bell },
   { path: '/admin-portal/dashboard/license-generator', label: 'License Generator', icon: FileKey },

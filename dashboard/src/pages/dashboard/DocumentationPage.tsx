@@ -1,175 +1,244 @@
-import { BookOpen, MessageSquare, Key, Shield, Settings, Server, Users, FileText, ExternalLink, Search } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
-import { usePermissions } from "@/lib/permissions";
-
-interface DocSection {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  articles: string[];
-  adminOnly?: boolean;
-}
-
-const allDocSections: DocSection[] = [
-  {
-    id: "getting-started",
-    title: "Getting Started",
-    description: "Quick start guides and basics",
-    icon: BookOpen,
-    articles: ["Installation Guide", "First Steps", "Basic Configuration"],
-  },
-  {
-    id: "ai-chat",
-    title: "AI Chat",
-    description: "Using the chat interface",
-    icon: MessageSquare,
-    articles: ["Chat Basics", "Model Selection", "Conversation History", "Prompt Tips"],
-  },
-  {
-    id: "prompts",
-    title: "Prompt Library",
-    description: "Creating and managing prompts",
-    icon: FileText,
-    articles: ["Creating Templates", "Variables & Placeholders", "Sharing Prompts"],
-  },
-  {
-    id: "api-keys",
-    title: "API Key Management",
-    description: "Creating and managing API keys",
-    icon: Key,
-    articles: ["Creating Keys", "Model Binding", "Token Limits", "Revoking Keys"],
-    adminOnly: true,
-  },
-  {
-    id: "authentication",
-    title: "Authentication & SSO",
-    description: "Setting up single sign-on",
-    icon: Shield,
-    articles: ["OIDC Configuration", "SAML Setup", "Role Mapping", "Group Sync"],
-    adminOnly: true,
-  },
-  {
-    id: "security",
-    title: "Security & Compliance",
-    description: "Security best practices",
-    icon: Shield,
-    articles: ["Audit Logging", "Data Encryption", "Access Control", "Compliance Reports"],
-    adminOnly: true,
-  },
-  {
-    id: "licensing",
-    title: "Licensing",
-    description: "Managing your license",
-    icon: Key,
-    articles: ["License Types", "Uploading Licenses", "Feature Entitlements", "Renewals"],
-    adminOnly: true,
-  },
-  {
-    id: "infrastructure",
-    title: "Infrastructure",
-    description: "Server and system setup",
-    icon: Server,
-    articles: ["Ollama Configuration", "Vector Database Setup", "Scaling", "Backup & Recovery"],
-    adminOnly: true,
-  },
-  {
-    id: "user-management",
-    title: "User Management",
-    description: "Managing users and roles",
-    icon: Users,
-    articles: ["Creating Users", "Role Assignment", "Permissions Matrix", "Bulk Import"],
-    adminOnly: true,
-  },
-  {
-    id: "advanced",
-    title: "Advanced Configuration",
-    description: "Advanced settings and tuning",
-    icon: Settings,
-    articles: ["Rate Limiting", "Custom Models", "API Webhooks", "Performance Tuning"],
-    adminOnly: true,
-  },
-];
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { Search, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
+import { docsContent, docCategories, type DocItem } from "./docs/content";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const DocumentationPage = () => {
-  const permissions = usePermissions();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeId = searchParams.get("doc") || "introduction";
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  // Filter sections based on role
-  const visibleSections = permissions.isStaffOnly 
-    ? allDocSections.filter(section => !section.adminOnly)
-    : allDocSections;
+  // Find current doc
+  const currentDocIndex = docsContent.findIndex(doc => doc.id === activeId);
+  const currentDoc = docsContent[currentDocIndex >= 0 ? currentDocIndex : 0];
 
-  // Filter by search
-  const filteredSections = visibleSections.filter(section =>
-    section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    section.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    section.articles.some(article => article.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Navigation logic
+  const prevDoc = currentDocIndex > 0 ? docsContent[currentDocIndex - 1] : null;
+  const nextDoc = currentDocIndex < docsContent.length - 1 ? docsContent[currentDocIndex + 1] : null;
+
+  const navigateTo = (id: string) => {
+    setSearchParams({ doc: id });
+    setIsMobileOpen(false);
+  };
+
+  // Filter for sidebar
+  const filteredDocs = docsContent.filter(doc => 
+    doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    doc.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Group by category
+  const groupedDocs = docCategories.map(category => ({
+    category,
+    items: filteredDocs.filter(doc => doc.category === category)
+  })).filter(group => group.items.length > 0);
+
+  const SidebarContent = () => (
+    <div className="h-full flex flex-col gap-4 py-4">
+      <div className="px-4">
+        <h2 className="text-lg font-semibold tracking-tight mb-2">Documentation</h2>
+        <div className="relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder="Search docs..." 
+            className="pl-8 h-9" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+      <ScrollArea className="flex-1 px-4">
+        <div className="space-y-6 pb-8">
+          {groupedDocs.map((group) => (
+            <div key={group.category}>
+              <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                {group.category}
+              </h3>
+              <div className="space-y-1">
+                {group.items.map((item) => (
+                  <Button
+                    key={item.id}
+                    variant={activeId === item.id ? "secondary" : "ghost"}
+                    size="sm"
+                    className={cn(
+                      "w-full justify-start font-normal h-8",
+                      activeId === item.id && "bg-secondary font-medium"
+                    )}
+                    onClick={() => navigateTo(item.id)}
+                  >
+                    {item.icon && <item.icon className="mr-2 h-4 w-4 opacity-70" />}
+                    {item.title}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          ))}
+          {groupedDocs.length === 0 && (
+            <div className="text-center py-8 text-sm text-muted-foreground">
+              No results found
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+    </div>
   );
 
   return (
-    <div className="space-y-6 h-full overflow-auto">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">Documentation</h2>
-          <p className="text-sm text-muted-foreground">
-            {permissions.isStaffOnly ? "Guides for using Fortress AI" : "Complete guides and reference documentation"}
-          </p>
-        </div>
-      </div>
+    <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:block w-64 border-r bg-muted/10 shrink-0">
+        <SidebarContent />
+      </aside>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input 
-          placeholder="Search documentation..." 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-        />
-      </div>
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto min-w-0">
+        <div className="container max-w-4xl mx-auto px-6 py-8 md:py-12">
+          {/* Mobile Header */}
+          <div className="md:hidden mb-6 flex items-center justify-between">
+            <h1 className="text-lg font-semibold">Documentation</h1>
+            <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-80">
+                <SidebarContent />
+              </SheetContent>
+            </Sheet>
+          </div>
 
-      {/* Documentation Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredSections.map((section) => (
-          <Card key={section.id} className="hover:border-primary/50 transition-colors cursor-pointer group">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <div className="p-1.5 rounded bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                  <section.icon className="w-4 h-4 text-primary" />
+          {/* Breadcrumbs / Navigation Header */}
+          <div className="mb-8 hidden md:block">
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
+              <span>Docs</span>
+              <ChevronRight className="h-3 w-3" />
+              <span>{currentDoc.category}</span>
+              <ChevronRight className="h-3 w-3" />
+              <span className="font-medium text-foreground">{currentDoc.title}</span>
+            </div>
+          </div>
+
+          {/* Content */}
+          <article className="prose prose-slate dark:prose-invert max-w-none mb-16">
+             {/* Use a simple custom renderer instead of react-markdown to keep deps zero */}
+             <SimpleMarkdownRenderer content={currentDoc.content} />
+          </article>
+
+          <Separator className="my-8" />
+
+          {/* Footer Navigation */}
+          <div className="flex flex-col sm:flex-row justify-between gap-4 mt-8 pb-12">
+            {prevDoc ? (
+              <Button 
+                variant="outline" 
+                className="h-auto py-4 px-6 justify-start text-left group w-full sm:w-auto"
+                onClick={() => navigateTo(prevDoc.id)}
+              >
+                <div className="flex flex-col items-start gap-1">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <ChevronLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" /> 
+                    Previous
+                  </span>
+                  <span className="font-medium">{prevDoc.title}</span>
                 </div>
-                {section.title}
-                {section.adminOnly && (
-                  <Badge variant="outline" className="text-[10px] ml-auto">Admin</Badge>
-                )}
-              </CardTitle>
-              <CardDescription className="text-xs">{section.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-1">
-                {section.articles.map((article) => (
-                  <li key={article} className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                    <ExternalLink className="w-3 h-3" />
-                    {article}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredSections.length === 0 && (
-        <div className="text-center py-12">
-          <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">No documentation found matching your search.</p>
+              </Button>
+            ) : <div />}
+            
+            {nextDoc ? (
+              <Button 
+                variant="outline" 
+                className="h-auto py-4 px-6 justify-end text-right group w-full sm:w-auto"
+                onClick={() => navigateTo(nextDoc.id)}
+              >
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    Next 
+                    <ChevronRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                  <span className="font-medium">{nextDoc.title}</span>
+                </div>
+              </Button>
+            ) : <div />}
+          </div>
         </div>
-      )}
+      </main>
     </div>
   );
 };
 
+// Simple Markdown Renderer component to avoid dependencies
+const SimpleMarkdownRenderer = ({ content }: { content: string }) => {
+  if (!content) return null;
+  
+  // Split by newlines but preserve code blocks? Simple approach first.
+  const lines = content.split('\n');
+  
+  return (
+    <div className="space-y-4">
+      {lines.map((line, i) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <br key={i} className="content-spacer" />;
+        
+        // Headers
+        if (trimmed.startsWith('### ')) return <h3 key={i} className="text-xl font-bold mt-6 mb-2">{trimmed.substring(4)}</h3>;
+        if (trimmed.startsWith('## ')) return <h2 key={i} className="text-2xl font-bold mt-8 mb-4 border-b pb-2">{trimmed.substring(3)}</h2>;
+        if (trimmed.startsWith('# ')) return <h1 key={i} className="text-3xl font-extrabold mb-6">{trimmed.substring(2)}</h1>;
+        
+        // Lists
+        if (trimmed.startsWith('- ')) {
+          // Check if previous line was also a list item to wrap in ul? 
+          // For simplicity, just render individual items with bullet styling
+          return (
+            <div key={i} className="flex gap-2 ml-4">
+              <span className="text-primary mt-1.5">•</span>
+              <span dangerouslySetInnerHTML={{ __html: formatInline(trimmed.substring(2)) }} />
+            </div>
+          );
+        }
+
+        // Ordered lists (1. )
+        if (/^\d+\.\s/.test(trimmed)) {
+             const [num, ...rest] = trimmed.split('.');
+             return (
+                 <div key={i} className="flex gap-2 ml-4">
+                     <span className="text-primary font-mono font-bold">{num}.</span>
+                     <span dangerouslySetInnerHTML={{ __html: formatInline(rest.join('.').trim()) }} />
+                 </div>
+             )
+        }
+        
+        // Code Blocks (simplistic - assumes single line code blocks for now or blocks start/end on separate lines)
+        // If line is just ```, ignore? No, let's treat lines starting with specific chars specially.
+        // For standard paragraphs:
+        if (trimmed.startsWith('`') && trimmed.endsWith('`')) { // full line code
+             return <pre key={i} className="bg-muted p-3 rounded-md overflow-x-auto text-sm"><code>{trimmed.replace(/`/g, '')}</code></pre>
+        }
+
+        return <p key={i} className="leading-7" dangerouslySetInnerHTML={{ __html: formatInline(trimmed) }} />;
+      })}
+    </div>
+  );
+};
+
+// Helper for inline styles
+const formatInline = (text: string) => {
+    // Bold
+    let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Inline code
+    formatted = formatted.replace(/`([^`]+)`/g, '<code class="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-primary">$1</code>');
+    // Links (simple)
+    formatted = formatted.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-primary hover:underline underline-offset-4">$1</a>');
+    
+    return formatted;
+};
+
 export default DocumentationPage;
+

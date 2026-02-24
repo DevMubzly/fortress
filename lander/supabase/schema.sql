@@ -30,6 +30,21 @@ CREATE TABLE IF NOT EXISTS leads (
     sector TEXT
 );
 
+-- Licenses Table
+CREATE TABLE IF NOT EXISTS licenses (
+    id TEXT PRIMARY KEY,
+    organization TEXT NOT NULL,
+    tier TEXT,
+    features TEXT[],
+    max_users INTEGER,
+    valid_until TIMESTAMP WITH TIME ZONE,
+    issued_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    revoked BOOLEAN DEFAULT FALSE,
+    active BOOLEAN DEFAULT TRUE,
+    raw_license TEXT,
+    fingerprint TEXT
+);
+
 -- Seed Data for Organizations
 INSERT INTO organizations (name, plan, status, users_count, region, renewal_date) VALUES
 ('Acme Corp', 'enterprise', 'active', 150, 'us-east', NOW() + INTERVAL '20 days'),

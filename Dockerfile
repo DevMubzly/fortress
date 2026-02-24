@@ -48,7 +48,7 @@ COPY --from=frontend-builder /app/dashboard/dist /usr/share/nginx/html
 ENV PYTHONUNBUFFERED=1
 
 # Expose ports
-EXPOSE 80
+EXPOSE 5500
 
 # Start Supervisor (which starts Nginx and Backend)
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
