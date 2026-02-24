@@ -78,11 +78,8 @@ const MainContent = () => {
 
   const handleLicenseAction = () => {
       // If user is admin, go to license management
-      // If user is not admin, just close (but it will reopen if we don't fix it? or maybe show contact info)
       if (user?.role === "admin") {
-          navigate("/dashboard/admin/licenses"); // Assuming route exists or /admin/licenses
-          // We need to allow navigation to this page even if blocked?
-          // The blocker is "on top" but we can check location.pathname to allow it.
+          navigate("/license-management");
       }
   };
 

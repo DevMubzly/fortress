@@ -167,11 +167,24 @@ const LicenseManagementPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["licenses"] });
       toast.success("License revoked successfully");
+      setRevokeOpen(false);
+      setSelectedLicenseId(null);
     },
     onError: (error) => {
       toast.error(error.message);
     },
   });
+
+  const confirmRevoke = (id: string) => {
+      setSelectedLicenseId(id);
+      setRevokeOpen(true);
+  };
+
+  const handleRevoke = () => {
+      if (selectedLicenseId) {
+          revokeMutation.mutate(selectedLicenseId);
+      }
+  };
 
   const handleUpload = async () => {
     if (!file) return;
@@ -200,9 +213,34 @@ const LicenseManagementPage = () => {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">License Management</h2>
           <p className="text-muted-foreground">
-            Manage active licenses, view expiry dates, and upload new keys.
+            Monitor and manage organization licenses, expirations, and renewals.
           </p>
         </div>
+        
+        <AlertDialog open={revokeOpen} onOpenChange={setRevokeOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="text-destructive flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5" />
+                        Revoke License?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This will permanently revoke the license for this organization. 
+                        Users will lose access immediately. This action cannot be undone.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                        onClick={handleRevoke}
+                        className="bg-destructive hover:bg-destructive/90"
+                    >
+                        {revokeMutation.isPending ? "Revoking..." : "Revoke License"}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
         <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -212,9 +250,9 @@ const LicenseManagementPage = () => {
           </DialogTrigger>
           <DialogContent>
              <DialogHeader>
-                <DialogTitle>Upload License</DialogTitle>
+                <DialogTitle>Upload / Renew License</DialogTitle>
                 <DialogDescription>
-                    Select a .lic or .json license file to activate.
+                    Upload a new .lic or .json license file to add or renew an organization license.
                 </DialogDescription>
              </DialogHeader>
              <div className="grid w-full items-center gap-4">
@@ -226,6 +264,9 @@ const LicenseManagementPage = () => {
                         accept=".lic,.json" 
                         onChange={(e) => setFile(e.target.files?.[0] || null)}
                     />
+                    <p className="text-xs text-muted-foreground">
+                        Supported formats: JSON, LIC. Max size: 1MB.
+                    </p>
                  </div>
              </div>
              <DialogFooter>
@@ -332,12 +373,8 @@ const LicenseManagementPage = () => {
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem 
-                                                    className="text-red-600"
-                                                    onClick={() => {
-                                                        if(confirm("Are you sure you want to revoke this license?")) {
-                                                            revokeMutation.mutate(lic.id);
-                                                        }
-                                                    }}
+                                                    className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                                                    onClick={() => confirmRevoke(lic.id)}
                                                 >
                                                     <Trash2 className="mr-2 h-4 w-4" />
                                                     Revoke License
