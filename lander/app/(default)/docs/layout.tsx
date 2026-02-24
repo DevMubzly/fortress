@@ -24,10 +24,10 @@ export default function DocsLayout({
   return (
     <div className="w-full relative flex min-h-screen flex-col px-4 md:px-8">
       <div className="flex flex-1 flex-col py-8 md:grid md:grid-cols-[250px_1fr] md:gap-8 lg:py-10">
-        <aside className="fixed top-24 z-30 hidden h-[calc(100vh-6rem)] w-[250px] shrink-0 overflow-y-auto border-r border-gray-200 pr-4 md:sticky md:block">
+        <aside className="fixed top-24 pt-8 z-30 hidden h-[calc(100vh-6rem)] w-[250px] shrink-0 overflow-y-auto border-r border-gray-200 pr-4 md:sticky md:block">
           <DocsSearch />
           <div className="flex flex-col gap-2 pt-4">
-            <h4 className="mb-2 rounded-md px-2 py-1 text-sm font-semibold">
+            <h4 className="mb-2 rounded-md px-2 py-1 text-sm font-semibold font-persis">
               Documentation
             </h4>
             {sidebarItems.map((item) => (
@@ -46,7 +46,7 @@ export default function DocsLayout({
             ))}
           </div>
         </aside>
-        <main className="relative py-10 lg:py-12">
+        <main className="relative py-16 lg:py-24">
           <div className="mx-auto w-full min-w-0 px-4 md:px-8 lg:px-12 xl:px-16">
              {children}
           </div>
