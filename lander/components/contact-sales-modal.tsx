@@ -4,7 +4,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { X, ArrowRight, ArrowLeft, Check, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useModal } from "./modal-context";
-// import { submitContact } from "@/app/actions/contact";
+import { submitContact } from "@/app/actions/contact";
+import { useToast } from "@/hooks/use-toast";
 
 type FormData = {
   name: string;
@@ -14,6 +15,7 @@ type FormData = {
   role: string;
   useCase: string;
   sector: string;
+  budget: string;
 };
 
 const INITIAL_DATA: FormData = {
@@ -24,6 +26,7 @@ const INITIAL_DATA: FormData = {
   role: "",
   useCase: "",
   sector: "",
+  budget: "",
 };
 
 const SECTORS = [
@@ -36,8 +39,17 @@ const SECTORS = [
   "Other",
 ];
 
+const BUDGET_RANGES = [
+    "Under $5k",
+    "$5k - $20k",
+    "$20k - $50k",
+    "$50k - $100k",
+    "$100k+",
+];
+
 export default function ContactSalesModal() {
   const { isOpen, closeModal } = useModal();
+  const { toast } = useToast();
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<FormData>(INITIAL_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,7 +75,7 @@ export default function ContactSalesModal() {
   }, [step, isOpen]);
 
   const handleNext = () => {
-    if (step < 6) {
+    if (step < 7) {
       setStep(step + 1);
     } else {
       handleSubmit();
@@ -80,19 +92,19 @@ export default function ContactSalesModal() {
     setIsSubmitting(true);
     
     // Call server action to send email (Resend) and save to DB
-    // const result = await submitContact(formData);
+    const result = await submitContact(formData);
     // const result = { success: true };
 
-    // if (!result.success) {
-    //     console.error("Error submitting lead:", result.error);
-    //     toast({
-    //         title: "Submission Failed",
-    //         description: "There was an error submitting your request. Please try again.",
-    //         variant: "destructive"
-    //     });
-    //     setIsSubmitting(false);
-    //     return;
-    // }
+    if (!result.success) {
+        console.error("Error submitting lead:", result.error);
+        toast({
+            title: "Submission Failed",
+            description: "There was an error submitting your request. Please try again.",
+            variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+    }
 
     setIsSubmitting(false);
     setIsSubmitted(true);
@@ -163,7 +175,15 @@ export default function ContactSalesModal() {
           options: SECTORS,
           value: formData.sector,
         };
-       case 6:
+      case 6:
+        return {
+          label: "What is your estimated budget?",
+          name: "budget",
+          type: "select",
+          options: BUDGET_RANGES,
+          value: formData.budget,
+        };
+       case 7:
         return {
           label: "Tell us about your use case",
           name: "useCase",
