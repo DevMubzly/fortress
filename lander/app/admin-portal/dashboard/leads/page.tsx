@@ -33,6 +33,7 @@ interface Lead {
   phone: string | null;
   role: string | null;
   sector: string | null;
+  budget: string | null;
 }
 
 // Skeleton loader
@@ -270,6 +271,11 @@ export default function LeadInboxPage() {
                                 {selectedLead.sector && (
                                     <Badge variant="outline" className="bg-gray-50 text-gray-600 ">
                                         {selectedLead.sector}
+                                    </Badge>
+                                )}
+                                {selectedLead.budget && (
+                                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                        Budget: {selectedLead.budget}
                                     </Badge>
                                 )}
                                 <Badge variant="secondary" className={cn(

@@ -249,7 +249,6 @@ export default function ApiKeysPage() {
                     description="Manage access keys for programmatic usage of models." 
                 />
                 <div className="flex items-center gap-2">
-                    <NotificationBell />
                     <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
                         <Plus className="w-4 h-4" />
                         Create API Key

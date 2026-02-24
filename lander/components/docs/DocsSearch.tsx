@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Search, Loader2 } from "lucide-react";
-import { useCompletion } from "ai/react";
+import { useCompletion } from "@ai-sdk/react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -79,43 +79,45 @@ export function DocsSearch() {
                 autoFocus
             />
         </div>
-        <CommandList className="max-h-[500px]">
-          {isLoading && (
-             <div className="p-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Thinking...
-             </div>
-          )}
-          
-          {!isLoading && completion && (
-            <div className="p-4">
-                <h4 className="text-sm font-semibold mb-2 text-primary">Answer:</h4>
-                <div className="prose prose-sm dark:prose-invert text-sm">
-                    {completion.split('\n').map((line, i) => (
-                        <p key={i} className="mb-1">{line}</p>
-                    ))}
-                </div>
-            </div>
-          )}
+        {query.length > 0 && (
+            <CommandList className="max-h-[500px]">
+                {isLoading && (
+                    <div className="p-4 flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Thinking...
+                    </div>
+                )}
+            
+                {!isLoading && completion && (
+                    <div className="p-4">
+                        <h4 className="text-sm font-semibold mb-2 text-primary">Answer:</h4>
+                        <div className="prose prose-sm dark:prose-invert text-sm">
+                            {(completion || '').split('\n').map((line: string, i: number) => (
+                                <p key={i} className="mb-1">{line}</p>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
-          {!completion && !isLoading && (
-              <CommandEmpty>No results found.</CommandEmpty>
-          )}
+                {!completion && !isLoading && (
+                    <CommandEmpty>No results found.</CommandEmpty>
+                )}
 
-          {!completion && !isLoading && (
-             <CommandGroup heading="Suggestions">
-                <CommandItem onSelect={() => { setQuery("How do I install Fortress?"); complete("How do I install Fortress?"); }}>
-                    How do I install Fortress?
-                </CommandItem>
-                <CommandItem onSelect={() => { setQuery("What models are supported?"); complete("What models are supported?"); }}>
-                    What models are supported?
-                </CommandItem>
-                <CommandItem onSelect={() => { setQuery("How to configure API keys?"); complete("How to configure API keys?"); }}>
-                    How to configure API keys?
-                </CommandItem>
-             </CommandGroup>
-          )}
-        </CommandList>
+                {!completion && !isLoading && (
+                    <CommandGroup heading="Suggestions">
+                        <CommandItem onSelect={() => { setQuery("How do I install Fortress?"); complete("How do I install Fortress?"); }}>
+                            How do I install Fortress?
+                        </CommandItem>
+                        <CommandItem onSelect={() => { setQuery("What models are supported?"); complete("What models are supported?"); }}>
+                            What models are supported?
+                        </CommandItem>
+                        <CommandItem onSelect={() => { setQuery("How to configure API keys?"); complete("How to configure API keys?"); }}>
+                            How to configure API keys?
+                        </CommandItem>
+                    </CommandGroup>
+                )}
+            </CommandList>
+        )}
       </CommandDialog>
     </>
   );

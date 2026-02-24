@@ -5,7 +5,6 @@ import { streamText } from 'ai';
 const groq = createOpenAI({
   apiKey: process.env.GROQ_API_KEY || '',
   baseURL: 'https://api.groq.com/openai/v1',
-  compatibility: 'strict', // recommended for 3rd party providers
 });
 
 // Allow streaming responses up to 30 seconds
@@ -29,5 +28,5 @@ export async function POST(req: Request) {
     prompt,
   });
 
-  return result.toDataStreamResponse();
+  return result.toTextStreamResponse();
 }

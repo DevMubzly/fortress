@@ -293,8 +293,8 @@ const MonitoringAnalyticsPage = () => {
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass rounded-lg p-4 border border-border/50 bg-card flex flex-col justify-between">
+      <div className="grid grid-cols-1 overflow-hidden rounded-xl border bg-background shadow-sm md:grid-cols-4">
+          <div className="p-6 md:border-r hover:bg-muted/50 transition-colors flex flex-col justify-between">
               <div className="flex justify-between items-start mb-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Tokens</p>
                   <Zap className="w-4 h-4 text-primary" />
@@ -304,7 +304,7 @@ const MonitoringAnalyticsPage = () => {
                   <p className="text-[10px] text-muted-foreground mt-1">Across all models</p>
               </div>
           </div>
-          <div className="glass rounded-lg p-4 border border-border/50 bg-card flex flex-col justify-between">
+          <div className="p-6 md:border-r hover:bg-muted/50 transition-colors flex flex-col justify-between">
               <div className="flex justify-between items-start mb-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Avg Latency</p>
                   <Clock className="w-4 h-4 text-primary" />
@@ -314,20 +314,20 @@ const MonitoringAnalyticsPage = () => {
                   <p className="text-[10px] text-muted-foreground mt-1">Response time</p>
               </div>
           </div>
-          <div className="glass rounded-lg p-4 border border-border/50 bg-card flex flex-col justify-between">
+          <div className="p-6 md:border-r hover:bg-muted/50 transition-colors flex flex-col justify-between">
               <div className="flex justify-between items-start mb-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Requests</p>
                   <Activity className="w-4 h-4 text-primary" />
               </div>
               <div>
-                  <h3 className="text-2xl font-bold">{stats?.total_requests.toLocaleString() || 0}</h3>
-                  <p className="text-[10px] text-muted-foreground mt-1">Total interactions</p>
+                  <h3 className="text-2xl font-bold">{stats?.total_requests?.toLocaleString() || 0}</h3>
+                  <p className="text-[10px] text-muted-foreground mt-1 text-green-500">Total interactions</p>
               </div>
           </div>
-          <div className="glass rounded-lg p-4 border border-border/50 bg-card flex flex-col justify-between">
+          <div className="p-6 hover:bg-muted/50 transition-colors flex flex-col justify-between">
               <div className="flex justify-between items-start mb-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Error Rate</p>
-                  <AlertCircle className="w-4 h-4 text-red-500" />
+                  <AlertCircle className="w-4 h-4 text-primary" />
               </div>
               <div>
                   <h3 className="text-2xl font-bold">{stats?.error_rate || 0}%</h3>

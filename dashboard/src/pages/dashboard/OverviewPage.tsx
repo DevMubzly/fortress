@@ -186,50 +186,50 @@ const OverviewPage = () => {
         </div>
 
         {/* Key Metrics Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <GlassCard onClick={() => navigate("/monitoring")}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+        <div className="grid grid-cols-1 overflow-hidden rounded-xl border bg-background shadow-sm md:grid-cols-4">
+            <div className="p-6 md:border-r hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate("/monitoring")}>
+                <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <span className="text-sm font-medium">Total Requests</span>
                     <Activity className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
+                </div>
+                <div className="pt-2">
                     <div className="text-2xl font-bold">{stats?.total_requests?.toLocaleString() || 0}</div>
                     <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-                </CardContent>
-            </GlassCard>
+                </div>
+            </div>
             
-            <GlassCard onClick={() => navigate("/monitoring")}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Avg Latency</CardTitle>
+            <div className="p-6 md:border-r hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate("/monitoring")}>
+                <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <span className="text-sm font-medium">Avg Latency</span>
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
+                </div>
+                <div className="pt-2">
                     <div className="text-2xl font-bold">{stats?.avg_latency ? stats.avg_latency.toFixed(0) : 0}ms</div>
                     <p className="text-xs text-muted-foreground">Response time</p>
-                </CardContent>
-            </GlassCard>
+                </div>
+            </div>
             
-            <GlassCard onClick={() => navigate("/monitoring")}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+            <div className="p-6 md:border-r hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate("/monitoring")}>
+                <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <span className="text-sm font-medium">Success Rate</span>
                     <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
+                </div>
+                <div className="pt-2">
                     <div className="text-2xl font-bold">{stats ? (100 - (stats.error_rate * 100)).toFixed(1) : 100}%</div>
                     <p className="text-xs text-muted-foreground">Successful requests</p>
-                </CardContent>
-            </GlassCard>
+                </div>
+            </div>
 
-            <GlassCard onClick={() => navigate("/model-hub")}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Models</CardTitle>
+            <div className="p-6 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate("/model-hub")}>
+                <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <span className="text-sm font-medium">Active Models</span>
                     <Brain className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
+                </div>
+                <div className="pt-2">
                     <div className="text-2xl font-bold">{models.length}</div>
                     <p className="text-xs text-muted-foreground">Installed & Ready</p>
-                </CardContent>
-            </GlassCard>
+                </div>
+            </div>
         </div>
 
         {/* Charts Section */}

@@ -67,6 +67,7 @@ const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const permissions = usePermissions();
   const { downloads, activeDownloadCount } = useDownload();
   const { license } = useLicense();
@@ -148,24 +149,26 @@ const AppSidebar = () => {
       </div>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Type a command or search..." />
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Navigation">
-            {navItems.map((item) => (
-              <CommandItem
-                key={item.id}
-                value={item.title}
-                onSelect={() => {
-                  runCommand(() => navigate(item.url));
-                }}
-              >
-                <item.icon className="mr-2 h-4 w-4" />
-                <span>{item.title}</span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </CommandList>
+        <CommandInput placeholder="Type a command or search..." value={searchValue} onValueChange={setSearchValue} />
+        {searchValue.length > 0 && (
+            <CommandList>
+            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup heading="Navigation">
+                {navItems.map((item) => (
+                <CommandItem
+                    key={item.id}
+                    value={item.title}
+                    onSelect={() => {
+                    runCommand(() => navigate(item.url));
+                    }}
+                >
+                    <item.icon className="mr-2 h-4 w-4" />
+                    <span>{item.title}</span>
+                </CommandItem>
+                ))}
+            </CommandGroup>
+            </CommandList>
+        )}
       </CommandDialog>
 
       {/* Navigation */}
