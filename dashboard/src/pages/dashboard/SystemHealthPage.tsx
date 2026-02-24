@@ -181,10 +181,77 @@ const SystemHealthPage = () => {
       </div>
 
       {/* Primary Metrics Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           
+          <Card className="col-span-1 glass border-primary/10">
+             <CardHeader className="pb-2">
+                 <CardTitle className="text-sm font-medium text-muted-foreground">CPU Usage</CardTitle>
+             </CardHeader>
+             <CardContent>
+                 <div className="text-2xl font-bold flex items-center gap-2">
+                     <Cpu className="h-5 w-5 text-purple-500" />
+                     {metrics.cpu_usage.toFixed(1)}%
+                 </div>
+                 <div className="h-2 w-full bg-slate-100 rounded-full mt-2 overflow-hidden">
+                     <div className="h-full bg-purple-500 transition-all duration-500" style={{ width: `${Math.min(metrics.cpu_usage, 100)}%` }} />
+                 </div>
+             </CardContent>
+          </Card>
+
+          <Card className="col-span-1 glass border-primary/10">
+             <CardHeader className="pb-2">
+                 <CardTitle className="text-sm font-medium text-muted-foreground">Memory Usage</CardTitle>
+             </CardHeader>
+             <CardContent>
+                 <div className="text-2xl font-bold flex items-center gap-2">
+                     <Activity className="h-5 w-5 text-blue-500" />
+                     {metrics.ram_usage.toFixed(1)}%
+                 </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                      {metrics.ram_used.toFixed(1)} GB / {metrics.ram_total.toFixed(1)} GB
+                  </p>
+                 <div className="h-2 w-full bg-slate-100 rounded-full mt-2 overflow-hidden">
+                     <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${Math.min(metrics.ram_usage, 100)}%` }} />
+                 </div>
+             </CardContent>
+          </Card>
+          
+          <Card className="col-span-1 glass border-primary/10">
+             <CardHeader className="pb-2">
+                 <CardTitle className="text-sm font-medium text-muted-foreground">Disk I/O</CardTitle>
+             </CardHeader>
+             <CardContent>
+                 <div className="text-2xl font-bold flex items-center gap-2">
+                     <HardDrive className="h-5 w-5 text-orange-500" />
+                     {metrics.disk_percent.toFixed(1)}%
+                 </div>
+                 <p className="text-xs text-muted-foreground mt-1">
+                      {metrics.disk_used.toFixed(1)} GB Used
+                  </p>
+                 <div className="h-2 w-full bg-slate-100 rounded-full mt-2 overflow-hidden">
+                     <div className="h-full bg-orange-500 transition-all duration-500" style={{ width: `${Math.min(metrics.disk_percent, 100)}%` }} />
+                 </div>
+             </CardContent>
+          </Card>
+
+           <Card className="col-span-1 glass border-primary/10">
+             <CardHeader className="pb-2">
+                 <CardTitle className="text-sm font-medium text-muted-foreground">Network</CardTitle>
+             </CardHeader>
+             <CardContent>
+                 <div className="text-2xl font-bold flex items-center gap-2">
+                     <Network className="h-5 w-5 text-green-500" />
+                     Active
+                 </div>
+                 <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                      <span>↑ {metrics.net_sent_mb.toFixed(1)} MB</span>
+                      <span>↓ {metrics.net_recv_mb.toFixed(1)} MB</span>
+                 </div>
+             </CardContent>
+          </Card>
+
           {/* 1. CPU & RAM History (Line Chart) */}
-          <Card className="col-span-1 lg:col-span-2 glass border-primary/10">
+          <Card className="col-span-1 lg:col-span-3 glass border-primary/10">
               <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
                       <Activity className="w-4 h-4 text-primary" />

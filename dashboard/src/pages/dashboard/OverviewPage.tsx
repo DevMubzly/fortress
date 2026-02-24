@@ -174,7 +174,7 @@ const OverviewPage = () => {
             </div>
             <div className="flex items-center gap-2">
                 <StatusIndicator 
-                    label="AI System" 
+                    label="AI Core" 
                     status={metrics?.ollama_status ? "healthy" : "critical"} 
                     value={metrics?.ollama_status ? "Online" : "Issues"}
                 />
@@ -220,14 +220,17 @@ const OverviewPage = () => {
                 </div>
             </div>
 
-            <div className="p-6 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate("/model-hub")}>
+            <div className="p-6 md:border-r hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate("/model-hub")}>
                 <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <span className="text-sm font-medium">Active Models</span>
+                    <span className="text-sm font-medium">Installed Models</span>
                     <Brain className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="pt-2">
                     <div className="text-2xl font-bold">{models.length}</div>
-                    <p className="text-xs text-muted-foreground">Installed & Ready</p>
+                    <div className="flex items-center text-xs text-muted-foreground mt-1">
+                         <div className={`w-2 h-2 rounded-full mr-1 ${metrics?.loaded_model ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                         {metrics?.loaded_model || "No model loaded"}
+                    </div>
                 </div>
             </div>
         </div>

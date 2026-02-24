@@ -48,13 +48,8 @@ interface NavItem {
 
 const adminNavItems: NavItem[] = [
   { id: "overview", title: "Overview", icon: LayoutDashboard, url: "/dashboard" },
-  { id: "audit-logs", title: "Audit Logs", icon: ScrollText, url: "/audit-logs", staffOnly: true },
-  { id: "model-hub", title: "Models", icon: Box, url: "/model-hub" },
-  { id: "api-keys", title: "API Keys", icon: KeyRound, url: "/apikeys" },
-  { id: "monitoring", title: "Monitoring", icon: BarChart3, url: "/monitoring" },
-  { id: "system-health", title: "System Health", icon: Activity, url: "/system-health" },
-  { id: "workspaces", title: "Workspaces", icon: MessageSquare, url: "/chat" },
   { id: "identity-access", title: "Identity & Access", icon: Users, url: "/identity-access" },
+  { id: "audit-logs", title: "Audit Logs", icon: ScrollText, url: "/audit-logs", staffOnly: true },
 ];
 
 const staffNavItems: NavItem[] = [
