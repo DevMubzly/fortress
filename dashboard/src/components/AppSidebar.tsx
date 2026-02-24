@@ -48,6 +48,7 @@ interface NavItem {
 
 const adminNavItems: NavItem[] = [
   { id: "overview", title: "Overview", icon: LayoutDashboard, url: "/dashboard" },
+  { id: "audit-logs", title: "Audit Logs", icon: ScrollText, url: "/audit-logs", staffOnly: true },
   { id: "model-hub", title: "Models", icon: Box, url: "/model-hub" },
   { id: "api-keys", title: "API Keys", icon: KeyRound, url: "/apikeys" },
   { id: "monitoring", title: "Monitoring", icon: BarChart3, url: "/monitoring" },

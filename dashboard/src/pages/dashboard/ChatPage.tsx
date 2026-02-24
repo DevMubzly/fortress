@@ -62,12 +62,28 @@ const ChatPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [editingChat, setEditingChat] = useState<ChatConversation | null>(null);
   const [newTitle, setNewTitle] = useState("");
+  const [apiKey, setApiKey] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const key = localStorage.getItem("fortress_api_key");
+    if (key) setApiKey(key);
     fetchHistory();
     fetchModels();
   }, []);
+
+  const handleSetApiKey = (key: string) => {
+    if (!key.trim()) return;
+    localStorage.setItem("fortress_api_key", key);
+    setApiKey(key);
+    toast({ title: "API Key Set", description: "You can now chat with models." });
+  };
+
+  const handleRemoveApiKey = () => {
+    localStorage.removeItem("fortress_api_key");
+    setApiKey(null);
+    toast({ title: "API Key Removed" });
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -197,7 +213,8 @@ const ChatPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "X-Fortress-Key": apiKey || ""
         },
         body: JSON.stringify({
           model: selectedModel,
@@ -206,7 +223,13 @@ const ChatPage = () => {
         })
       });
 
-      if (!res.ok) throw new Error("Failed to send message");
+      if (!res.ok) {
+        if (res.status === 403 || res.status === 401) {
+             toast({ title: "Auth Error", description: "Invalid API Key or Permissions", variant: "destructive" });
+             // handleRemoveApiKey(); // Optional: remove if invalid
+        }
+        throw new Error("Failed to send message");
+      }
 
       const reader = res.body?.getReader();
       if (!reader) throw new Error("No reader");
@@ -409,7 +432,43 @@ const ChatPage = () => {
                  )}
               </div>
               
+              { !apiKey ? (
+                 <div className="flex flex-col gap-2 p-3 border rounded-md bg-muted/20">
+                     <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold">API Key Required</Label>
+                     </div>
+                     <p className="text-[10px] text-muted-foreground">Please enter an API Key from your dashboard to continue.</p>
+                     <div className="flex gap-2">
+                         <Input 
+                            placeholder="sk-..." 
+                            className="flex-1 h-8 text-xs" 
+                            type="password"
+                            id="api-key-manual-input"
+                         />
+                         <Button 
+                            size="sm" 
+                            className="h-8 text-xs"
+                            onClick={() => {
+                                const el = document.getElementById('api-key-manual-input') as HTMLInputElement;
+                                if(el && el.value) handleSetApiKey(el.value);
+                            }}
+                         >
+                            Save Key
+                         </Button>
+                     </div>
+                 </div>
+              ) : (
               <div className="flex gap-3 relative">
+                 <div className="absolute -top-8 right-0">
+                     <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={handleRemoveApiKey} 
+                        className="h-6 px-2 text-[10px] text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                     >
+                        Remove Key
+                     </Button>
+                 </div>
                  <Textarea 
                     value={input}
                     onChange={e => setInput(e.target.value)}
@@ -427,6 +486,7 @@ const ChatPage = () => {
                    <Send className="w-4 h-4" />
                  </Button>
               </div>
+              )}
               <div className="text-[10px] text-center text-muted-foreground/60">
                  AI can make mistakes. Please verify important information.
               </div>

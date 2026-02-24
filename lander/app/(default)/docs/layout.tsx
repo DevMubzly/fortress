@@ -14,7 +14,7 @@ export default function DocsLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: "instant" });
   }, [pathname]);
 
   const sidebarItems = [

@@ -146,6 +146,20 @@ def init_db():
         )
     ''')
 
+    # Create audit_logs table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id TEXT PRIMARY KEY,
+            timestamp TEXT,
+            api_key_id TEXT,
+            user_id TEXT,
+            action TEXT,
+            details TEXT,
+            ip_address TEXT,
+            status TEXT
+        )
+    ''')
+
     conn.commit()
     conn.close()
 

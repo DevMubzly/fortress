@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Header
 from fastapi.responses import StreamingResponse
 from backend.models.models import User, ChatRequest
 from backend.dependencies import deps
@@ -37,7 +37,45 @@ def update_conversation(conversation_id: str, title: str = None):
     conn.close()
 
 @router.post("/completions")
-async def chat_completions(req: ChatRequest, conversation_id: str = None, current_user: User = Depends(deps.get_current_user)):
+async def chat_completions(req: ChatRequest, conversation_id: str = None, current_user: User = Depends(deps.get_current_user), x_fortress_key: str = Header(None, alias="X-Fortress-Key")):
+    # Validate API Key if provided (or mandate it based on requirement)
+    # The requirement says: "implement using the api keys ... to access the models"
+    # So we should probably check if it's valid.
+    
+    if x_fortress_key:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        # Verify key hash
+        import hashlib
+        key_hash = hashlib.sha256(x_fortress_key.encode()).hexdigest()
+        cursor.execute("SELECT * FROM api_keys WHERE key_hash = ? AND is_active = 1", (key_hash,))
+        api_key_record = cursor.fetchone()
+        conn.close()
+        
+        if not api_key_record:
+            raise HTTPException(status_code=403, detail="Invalid API Key")
+        
+        # Log usage (Audit)
+        from backend.services.audit_service import audit_service
+        # We can extract useful info from api_key_record based on schema in apikeys.py
+        # api_key_record is a Row/tuple
+        # user_id is index 1? Or named if RowFactory set? in apikeys.py RowFactory IS set.
+        # But here get_db_connection sets RowFactory? 
+        # In chat.py: `conn = get_db_connection(); cursor = conn.cursor()`
+        # get_db_connection() in database.py sets `conn.row_factory = sqlite3.Row`
+        
+        audit_service.log(
+            action="chat_completion",
+            user_id=api_key_record["user_id"],
+            api_key_id=api_key_record["id"],
+            details={"model": req.model, "tokens": 0}, # Tokens prompt
+            ip_address=None # Should get from Request object if possible
+        )
+    else:
+        # If no key provided, do we block? 
+        # "have there a prompt to ask for an api key if one is not added yet" implies it is needed.
+        raise HTTPException(status_code=403, detail="API Key Required")
+
     # 1. Create or Get Conversation
     conv_id = conversation_id or req.conversation_id
     

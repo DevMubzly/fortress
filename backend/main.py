@@ -6,13 +6,14 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import auth, setup, system, models, apikeys, stats, users, chat
+from backend.routers import auth, setup, system, models, apikeys, stats, users, chat, audit
 from backend.database import init_db
 
 # Initialize database
 init_db()
 
 app = FastAPI(title="Fortress API")
+app.include_router(audit.router, prefix="/api")
 
 # Configure CORS
 app.add_middleware(
