@@ -18,14 +18,18 @@ export default function DocsLayout({
   }, [pathname]);
 
   const sidebarItems = [
-    { title: "Introduction", href: "/docs/intro" },
-    { title: "Installation", href: "/docs/installation" },
-    { title: "Architecture", href: "/docs/architecture" },
+    { title: "Platform Overview", href: "/docs/intro" },
+    { title: "Deployment Guide", href: "/docs/installation" },
+    { title: "System Architecture", href: "/docs/architecture" },
     { title: "Administration", href: "/docs/administration" },
     { title: "Audit & Compliance", href: "/docs/compliance" },
-    { title: "Security Protocols", href: "/docs/security" },
-    { title: "API Reference", href: "/docs/api" },
+    { title: "Security Hardening", href: "/docs/security" },
+    { title: "API Integration", href: "/docs/api" },
   ];
+
+  const currentIndex = sidebarItems.findIndex(item => item.href === pathname);
+  const prevItem = currentIndex > 0 ? sidebarItems[currentIndex - 1] : null;
+  const nextItem = currentIndex < sidebarItems.length - 1 ? sidebarItems[currentIndex + 1] : null;
 
   return (
     <div className="w-full relative flex min-h-screen flex-col px-4 md:px-8">
@@ -55,6 +59,23 @@ export default function DocsLayout({
         <main className="relative py-16 lg:py-24">
           <div className="mx-auto w-full min-w-0 px-4 md:px-8 lg:px-12 xl:px-16">
              {children}
+
+             <hr className="my-8 border-gray-200" />
+             <div className="flex justify-between items-center pt-4">
+                {prevItem ? (
+                    <Link href={prevItem.href} className="flex flex-col gap-1 group text-left">
+                        <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">Previous</span>
+                        <span className="text-base font-medium text-primary group-hover:underline">{prevItem.title}</span>
+                    </Link>
+                ) : <div />}
+                
+                {nextItem ? (
+                    <Link href={nextItem.href} className="flex flex-col gap-1 group text-right">
+                        <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">Next</span>
+                        <span className="text-base font-medium text-primary group-hover:underline">{nextItem.title}</span>
+                    </Link>
+                ) : <div />}
+             </div>
           </div>
         </main>
       </div>

@@ -75,6 +75,37 @@ export default function ContactSalesModal() {
   }, [step, isOpen]);
 
   const handleNext = () => {
+    // Validation
+    if (step === 0 && !formData.name.trim()) {
+      toast({ title: "Name required", description: "Please enter your full name.", variant: "destructive" });
+      return;
+    }
+    if (step === 1) {
+      if (!formData.email.trim()) {
+        toast({ title: "Email required", description: "Please enter your work email.", variant: "destructive" });
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
+        return;
+      }
+    }
+    if (step === 2) {
+      if (!formData.phone.trim()) {
+        toast({ title: "Phone number required", description: "Please enter your phone number.", variant: "destructive" });
+        return;
+      }
+      // Basic phone validation: at least 7 chars of digits/symbols
+      if (!/^[\d\+\-\(\)\s]{7,}$/.test(formData.phone)) {
+        toast({ title: "Invalid phone number", description: "Please enter a valid phone number.", variant: "destructive" });
+        return;
+      }
+    }
+    if (step === 3 && !formData.organization.trim()) {
+        toast({ title: "Organization required", description: "Please enter your organization name.", variant: "destructive" });
+        return;
+    }
+
     if (step < 7) {
       setStep(step + 1);
     } else {
