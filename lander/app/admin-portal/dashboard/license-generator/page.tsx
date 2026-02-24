@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Download, Copy, RefreshCw } from "lucide-react";
 
+import { generateLicenseAction } from "@/app/actions/generate-license";
+
 export default function LicenseGeneratorPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedLicense, setGeneratedLicense] = useState<string | null>(null);
@@ -17,7 +19,7 @@ export default function LicenseGeneratorPage() {
   const [formData, setFormData] = useState({
     organization: "",
     tier: "enterprise",
-    features: ["sso", "audit-logs", "advanced-analytics", "custom-models"],
+    features: ["sso", "audit-logs", "advanced-analytics", "api-access"],
     maxUsers: "100",
     validityDays: "365"
   });
@@ -26,28 +28,24 @@ export default function LicenseGeneratorPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call to generate license
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock result (in real app, this calls backend to sign the license)
-      const mockLicense = {
-        id: `lic_${Math.random().toString(36).substring(2, 9)}`,
+      const result = await generateLicenseAction({
         organization: formData.organization,
         tier: formData.tier,
         features: formData.features,
         maxUsers: parseInt(formData.maxUsers),
-        validUntil: new Date(Date.now() + parseInt(formData.validityDays) * 86400000).toISOString(),
-        issuedAt: new Date().toISOString(),
-        signature: "SIGNED_CONTENT_WOULD_GO_HERE_IN_PRODUCTION"
-      };
-      
-      const licenseString = btoa(JSON.stringify(mockLicense));
-      setGeneratedLicense(licenseString);
-      toast({
-        title: "License Generated",
-        description: "New license key has been created successfully.",
+        validityDays: parseInt(formData.validityDays)
       });
+      
+      if (result.success && result.license) {
+        setGeneratedLicense(result.license);
+        toast({
+          title: "License Generated",
+          description: "New license key has been created successfully.",
+        });
+      } else {
+        throw new Error(result.error);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -93,7 +91,7 @@ export default function LicenseGeneratorPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card >
           <CardHeader>
             <CardTitle>Configuration</CardTitle>
             <CardDescription>Enter the license parameters.</CardDescription>
@@ -122,8 +120,7 @@ export default function LicenseGeneratorPage() {
                             <SelectValue placeholder="Select tier" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="starter">Starter</SelectItem>
-                            <SelectItem value="professional">Professional</SelectItem>
+                            <SelectItem value="standard">Standard</SelectItem>
                             <SelectItem value="enterprise">Enterprise</SelectItem>
                         </SelectContent>
                     </Select>

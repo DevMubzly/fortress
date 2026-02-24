@@ -7,22 +7,13 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { useLicense } from "@/contexts/LicenseContext";
 
 const API_BASE = "http://localhost:8000/api";
 
-type LicenseStatus = "active" | "expiring" | "expired" | "invalid";
-
-interface LicenseData {
-    status: LicenseStatus;
-    type: string;
-    organization: string;
-    issuedDate: string | null;
-    expiryDate: string;
-    daysRemaining: number;
-    maxUsers: number;
-    activeUsers: number; // This might come from elsewhere or just be mock for now
-    features: string[];
-}
+// Use types from context if possible or keep local if simple matching
+// For now, mapping context data to local structure or using context directly
+// Context LicenseData is slightly different structure perhaps? No, I made them match closely.
 
 interface LicenseSheetProps {
   isOpen: boolean;
@@ -32,46 +23,15 @@ interface LicenseSheetProps {
 const LicenseSheet = ({ isOpen, onClose }: LicenseSheetProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [licenseData, setLicenseData] = useState<LicenseData | null>(null);
-
-  const fetchLicense = async () => {
-    try {
-        setIsLoading(true);
-        const res = await fetch(`${API_BASE}/system/license`);
-        if (res.ok) {
-            const data = await res.json();
-            if (data.status === "none") {
-                setLicenseData(null);
-            } else {
-                setLicenseData({
-                    status: data.status,
-                    type: data.tier.charAt(0).toUpperCase() + data.tier.slice(1),
-                    organization: data.organization,
-                    issuedDate: data.issued_at,
-                    expiryDate: data.expires_at,
-                    daysRemaining: data.days_remaining,
-                    maxUsers: data.max_users,
-                    activeUsers: 0, // Not tracked yet
-                    features: data.features
-                });
-            }
-        }
-    } catch (error) {
-        console.error("Failed to fetch license", error);
-    } finally {
-        setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-        fetchLicense();
-    }
-  }, [isOpen]);
+  
+  // Use context
+  const { license, isLoading, refreshLicense } = useLicense();
+  
+  // Helper to map context license to local expected format if needed, but looks compatible.
+  const licenseData = license; 
 
   const getStatusConfig = () => {
-    const status = licenseData?.status || "invalid";
+    const status = licenseData?.status || "none";
     switch (status) {
       case "active":
         return { icon: CheckCircle, label: "Active", className: "bg-green-50 text-green-700 border-green-200" };
@@ -147,7 +107,7 @@ const LicenseSheet = ({ isOpen, onClose }: LicenseSheetProps) => {
             title: "License Updated",
             description: `${file.name} has been processed successfully.`,
         });
-        fetchLicense(); // Refresh data
+        refreshLicense(); // Refresh data
     } catch (error: any) {
         toast({
             title: "Update Failed",

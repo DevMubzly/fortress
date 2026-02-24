@@ -24,10 +24,14 @@ import MainLayout from "./layouts/MainLayout";
 import NotFound from "./pages/NotFound";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { DownloadProvider } from "@/contexts/DownloadContext";
+import { LicenseProvider } from "@/contexts/LicenseContext";
+
+import { LicenseProvider } from "@/contexts/LicenseContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
+  <LicenseProvider>
   <DownloadProvider>
     <NotificationProvider>
       <QueryClientProvider client={queryClient}>
@@ -64,10 +68,11 @@ const App = () => (
           </ErrorBoundary>
         </BrowserRouter>
       </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-</NotificationProvider>
-</DownloadProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+    </NotificationProvider>
+  </DownloadProvider>
+  </LicenseProvider>
 );
 
 export default App;

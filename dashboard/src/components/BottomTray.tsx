@@ -20,6 +20,7 @@ import LicenseSheet from "./LicenseSheet";
 import { Logo } from "@/components/ui/Logo";
 import { toast } from "@/hooks/use-toast";
 import { useDownload } from "@/contexts/DownloadContext";
+import { useLicense } from "@/contexts/LicenseContext";
 
 const BottomTray = () => {
   const [isLicenseSheetOpen, setIsLicenseSheetOpen] = useState(false);
@@ -30,6 +31,7 @@ const BottomTray = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { downloads } = useDownload();
+  const { license } = useLicense();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -139,7 +141,9 @@ const BottomTray = () => {
                   <div className="h-3.5 w-3.5 flex items-center justify-center">
                     <Logo size={14} />
                   </div>
-                  <span className="text-[10px] text-sidebar-foreground font-persis">Fortress v1.0.0</span>
+                  <span className="text-[10px] text-sidebar-foreground font-persis">
+                    Fortress v1.0.0 {license?.organization ? `• ${license.organization}` : ""}
+                  </span>
                   <ChevronUp className="h-2.5 w-2.5 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
               </DropdownMenuTrigger>

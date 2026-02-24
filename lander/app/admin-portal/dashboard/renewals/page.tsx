@@ -148,9 +148,9 @@ export default function RenewalAlertsPage() {
         </div>
         <div className="p-4 text-center">
              <p className="text-xs text-gray-500 uppercase tracking-wide mb-1 font-semibold">Auto-Renew Eligible</p>
-             <p className="text-3xl font-bold text-gray-900">
+             <div className="text-3xl font-bold text-gray-900">
                 {isLoading ? <Skeleton className="h-8 w-12 mx-auto" /> : `${autoRenewPercentage}%`}
-             </p>
+             </div>
         </div>
       </div>
 
