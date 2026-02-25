@@ -46,34 +46,28 @@ const SupportPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        if (!supabaseUrl || !supabaseKey) {
-            toast({
-                title: "Configuration Error",
-                description: "Supabase credentials are missing in the dashboard environment.",
-                variant: "destructive"
-            });
-            return;
-        }
-
         setIsLoading(true);
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        const token = localStorage.getItem("fortress_token");
 
         try {
-            const { error } = await supabase
-                .from('tickets')
-                .insert([
-                    {
-                        type: ticketType,
-                        subject,
-                        message,
-                        priority,
-                        status: 'open',
-                        created_at: new Date().toISOString()
-                        // user_id or email might be needed if authenticated
-                    }
-                ]);
+            const response = await fetch("http://localhost:8000/api/support/tickets", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    type: ticketType,
+                    subject,
+                    message,
+                    priority
+                })
+            });
 
-            if (error) throw error;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || "Failed to submit ticket");
+            }
 
             toast({
                 title: "Ticket Submitted",

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, FormEvent } from "react";
-import { Message } from "ai";
+import { runLangChainChat } from "@/lib/langchainChat";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -49,8 +49,6 @@ interface Model {
   status: string;
 }
 
-import { useChat } from "@ai-sdk/react";
-
 const ChatPage = () => {
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [models, setModels] = useState<Model[]>([]);
@@ -62,24 +60,14 @@ const ChatPage = () => {
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [showKeyDialog, setShowKeyDialog] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput, append, setMessages } = useChat({
-    api: "http://localhost:8000/api/chat/completions",
-    body: {
-      model: selectedModel,
-      conversation_id: selectedChatId
-    },
-    headers: {
-      "Authorization": `Bearer ${localStorage.getItem("fortress_token")}`,
-      "X-Fortress-Key": apiKey || ""
-    },
-    onFinish: () => {
-        fetchHistory();
-    },
-    onError: (err) => {
-        toast({ title: "Error", description: err.message || "Failed to generate response", variant: "destructive" });
-    }
-  });
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+  };
 
   useEffect(() => {
     const key = localStorage.getItem("fortress_api_key");
@@ -217,22 +205,27 @@ const ChatPage = () => {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedModel) {
-        toast({ title: "Error", description: "No model selected", variant: "destructive" });
-        return;
+      toast({ title: "Error", description: "No model selected", variant: "destructive" });
+      return;
     }
-    // append handles validation and sending.
-    // However, handleSubmit uses 'input' state.
-    handleSubmit(e, {
-        allowEmptySubmit: false,
-        body: {
-            model: selectedModel,
-            conversation_id: selectedChatId
-        },
-        headers: {
-             "Authorization": `Bearer ${localStorage.getItem("fortress_token")}`,
-             "X-Fortress-Key": apiKey || ""
-        }
-    });
+    if (!input.trim()) return;
+    setIsLoading(true);
+    setMessages(prev => [...prev, { role: "user", content: input }]);
+    setInput("");
+    runLangChainChat(
+      [...messages, { role: "user", content: input }],
+      selectedModel,
+      apiKey
+    )
+      .then((output) => {
+        setMessages(prev => [...prev, { role: "assistant", content: output }]);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message || "Failed to generate response");
+        toast({ title: "Error", description: err.message || "Failed to generate response", variant: "destructive" });
+        setIsLoading(false);
+      });
   };
 
   const handleNewChat = () => {
@@ -352,9 +345,9 @@ const ChatPage = () => {
                         "rounded-xl p-4 text-sm shadow-sm overflow-hidden",
                         msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-card border"
                       )}>
-                        {msg.content.split('\n').map((line, i) => (
+                        {/* {msg.content.split('\n').map((line, i) => (
                            <p key={i} className="min-h-[1.2em]">{line}</p>
-                        ))}
+                        ))} */}
                       </div>
                    </div>
                 </div>
@@ -429,7 +422,7 @@ const ChatPage = () => {
                    <Send className="w-4 h-4" />
                  </Button>
               </div>
-              )}
+              {/* )} */}
               <div className="text-[10px] text-center text-muted-foreground/60">
                  AI can make mistakes. Please verify important information.
               </div>
@@ -452,6 +445,7 @@ const ChatPage = () => {
             </DialogFooter>
          </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 };
