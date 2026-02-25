@@ -1,312 +1,291 @@
-
 import { useState, useEffect } from "react";
-import { User, Mail, Lock, Key, Shield, AlertTriangle, Loader2, Save, LogOut } from "lucide-react";
+import { User, Mail, Lock, Shield, AlertCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "@/hooks/use-toast";
-import { PageHeader } from "@/components/PageHeader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 
-// Helper to get initials
-const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+const profileSchema = z.object({
+  full_name: z.string().min(2, "Name must be at least 2 characters"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email(),
+});
+
+const passwordSchema = z.object({
+  current_password: z.string().min(1, "Current password is required"),
+  new_password: z.string().min(8, "Password must be at least 8 characters"),
+  confirm_password: z.string().min(8, "Password must be at least 8 characters"),
+}).refine((data) => data.new_password === data.confirm_password, {
+  message: "Passwords do not match",
+  path: ["confirm_password"],
+});
+
+const ProfilePage = () => {
+  const { toast } = useToast();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Forms
+  const profileForm = useForm<z.infer<typeof profileSchema>>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      full_name: "",
+      username: "",
+      email: "",
+    },
+  });
+
+  const passwordForm = useForm<z.infer<typeof passwordSchema>>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      current_password: "",
+      new_password: "",
+      confirm_password: "",
+    },
+  });
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
+  const fetchUser = async () => {
+    try {
+      const token = localStorage.getItem("fortress_token");
+      if (!token) return;
+
+      const res = await fetch("http://localhost:8000/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        const user = await res.json();
+        setCurrentUser(user);
+        profileForm.reset({
+          full_name: user.full_name,
+          username: user.username,
+          email: user.email,
+        });
+      }
+    } catch (e) {
+      console.error("Failed to fetch user", e);
+    }
   };
 
-const API_BASE = "http://localhost:8000/api";
+  const onProfileSubmit = async (data: z.infer<typeof profileSchema>) => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("fortress_token");
+      const res = await fetch("http://localhost:8000/api/users/me", {
+        method: "PATCH",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({
+          full_name: data.full_name,
+          username: data.username,
+          // Email is excluded intentionally as per requirements
+        }),
+      });
 
-export default function ProfilePage() {
-    const [user, setUser] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    
-    // Edit form state
-    const [formData, setFormData] = useState({
-        full_name: "",
-        username: "",
-        email: ""
-    });
-
-    const [passwordData, setPasswordData] = useState({
-        current_password: "",
-        new_password: "",
-        confirm_password: ""
-    });
-
-    useEffect(() => {
-        fetchProfile();
-    }, []);
-
-    const fetchProfile = async () => {
-        try {
-            const token = localStorage.getItem("fortress_token");
-            if (!token) return; // Redirect to login handled by protected route wrapper usually
-
-            const res = await fetch(`${API_BASE}/auth/me`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                setUser(data);
-                setFormData({
-                    full_name: data.full_name || "",
-                    username: data.username || "",
-                    email: data.email || ""
-                });
-            }
-        } catch (error) {
-            console.error("Failed to fetch profile", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleUpdateProfile = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSaving(true);
-        try {
-            const token = localStorage.getItem("fortress_token");
-            const res = await fetch(`${API_BASE}/users/me`, {
-                method: "PATCH",
-                headers: { 
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}` 
-                },
-                body: JSON.stringify({
-                    full_name: formData.full_name,
-                    username: formData.username
-                })
-            });
-
-            if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.detail || "Update failed");
-            }
-
-            const updatedUser = await res.json();
-            setUser(updatedUser);
-            toast({ title: "Profile Updated", description: "Your profile details have been saved." });
-        } catch (error: any) {
-            toast({ title: "Error", description: error.message, variant: "destructive" });
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleUpdatePassword = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (passwordData.new_password !== passwordData.confirm_password) {
-            toast({ title: "Error", description: "New passwords do not match", variant: "destructive" });
-            return;
-        }
-
-        setSaving(true);
-        try {
-            const token = localStorage.getItem("fortress_token");
-            const res = await fetch(`${API_BASE}/users/me/password`, {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}` 
-                },
-                body: JSON.stringify({
-                    old_password: passwordData.current_password,
-                    new_password: passwordData.new_password
-                })
-            });
-
-            if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.detail || "Password update failed");
-            }
-
-            toast({ title: "Success", description: "Your password has been changed." });
-            setPasswordData({ current_password: "", new_password: "", confirm_password: "" });
-        } catch (error: any) {
-            toast({ title: "Error", description: error.message, variant: "destructive" });
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-        );
+      if (res.ok) {
+        toast({ title: "Profile updated", description: "Your profile details have been changed." });
+        fetchUser(); // Refresh
+      } else {
+        throw new Error("Failed to update profile");
+      }
+    } catch (error) {
+       toast({ title: "Error", description: "Could not update profile.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-            <PageHeader
-                title="Account Settings"
-                description="Manage your profile information and security settings."
-            />
+  const onPasswordSubmit = async (data: z.infer<typeof passwordSchema>) => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("fortress_token");
+      const res = await fetch("http://localhost:8000/api/users/me/password", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({
+          old_password: data.current_password,
+          new_password: data.new_password,
+        }),
+      });
 
-            <Tabs defaultValue="general" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-                    <TabsTrigger value="general">General</TabsTrigger>
-                    <TabsTrigger value="security">Security</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="general" className="mt-6 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Profile Information</CardTitle>
-                            <CardDescription>Update your personal details.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="flex items-center gap-6">
-                                <Avatar className="w-20 h-20 border-2 border-border">
-                                    <AvatarImage src="" />
-                                    <AvatarFallback className="text-xl bg-primary/10 text-primary">
-                                        {user?.full_name ? getInitials(user.full_name) : 'U'}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="space-y-1">
-                                    <h3 className="font-medium text-lg">{user?.full_name || user?.username}</h3>
-                                    <p className="text-sm text-muted-foreground">{user?.role === 'admin' ? 'Administrator' : 'User'}</p>
-                                </div>
-                            </div>
+      if (res.ok) {
+        toast({ title: "Password updated", description: "Your password has been changed successfully." });
+        passwordForm.reset();
+      } else {
+        toast({ title: "Error", description: "Failed to update password. Check your current password.", variant: "destructive" });
+      }
+    } catch (error) {
+       toast({ title: "Error", description: "Could not update password.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-                            <Separator />
-
-                            <form onSubmit={handleUpdateProfile} className="space-y-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="full_name">Full Name</Label>
-                                    <div className="relative">
-                                        <User className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            id="full_name"
-                                            className="pl-9"
-                                            value={formData.full_name}
-                                            onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="username">Username</Label>
-                                    <div className="relative">
-                                        <Shield className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            id="username"
-                                            className="pl-9"
-                                            value={formData.username}
-                                            onChange={(e) => setFormData({...formData, username: e.target.value})}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="email">Email Address</Label>
-                                    <div className="relative">
-                                        <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            id="email"
-                                            className="pl-9 bg-muted/50"
-                                            value={formData.email}
-                                            disabled
-                                            title="Email editing is currently disabled."
-                                        />
-                                    </div>
-                                    <p className="text-[10px] text-muted-foreground">
-                                        Contact your administrator to change your email address.
-                                    </p>
-                                </div>
-
-                                <div className="pt-2">
-                                    <Button type="submit" disabled={saving}>
-                                        {saving ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Saving...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Save className="mr-2 h-4 w-4" />
-                                                Save Changes
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="security" className="mt-6 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Change Password</CardTitle>
-                            <CardDescription>Ensure your account is secure with a strong password.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleUpdatePassword} className="space-y-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="current_password">Current Password</Label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            id="current_password"
-                                            type="password"
-                                            className="pl-9"
-                                            value={passwordData.current_password}
-                                            onChange={(e) => setPasswordData({...passwordData, current_password: e.target.value})}
-                                        />
-                                    </div>
-                                </div>
-
-                                <Separator />
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="new_password">New Password</Label>
-                                    <div className="relative">
-                                        <Key className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            id="new_password"
-                                            type="password"
-                                            className="pl-9"
-                                            value={passwordData.new_password}
-                                            onChange={(e) => setPasswordData({...passwordData, new_password: e.target.value})}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="confirm_password">Confirm New Password</Label>
-                                    <div className="relative">
-                                        <Key className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            id="confirm_password"
-                                            type="password"
-                                            className="pl-9"
-                                            value={passwordData.confirm_password}
-                                            onChange={(e) => setPasswordData({...passwordData, confirm_password: e.target.value})}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="pt-2">
-                                    <Button type="submit" variant="outline" disabled={saving}>
-                                        {saving ? "Updating..." : "Update Password"}
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+  return (
+    <div className="h-full flex flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
+      
+      <div className="flex items-center gap-4">
+        <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+          <User className="h-8 w-8" />
         </div>
-    );
-}
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{currentUser?.full_name || "Loading..."}</h1>
+          <p className="text-muted-foreground flex items-center gap-1.5">
+            <Shield className="h-3.5 w-3.5" /> 
+            {currentUser?.role || "User"} Account
+          </p>
+        </div>
+      </div>
+
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="general">General Information</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Personal Information</CardTitle>
+              <CardDescription>
+                Update your personal details.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <form id="profile-form" onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name">Full Name</Label>
+                    <Input 
+                      id="full_name" 
+                      {...profileForm.register("full_name")} 
+                    />
+                    {profileForm.formState.errors.full_name && (
+                      <p className="text-xs text-destructive">{profileForm.formState.errors.full_name.message}</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input 
+                      id="username" 
+                      {...profileForm.register("username")} 
+                    />
+                    {profileForm.formState.errors.username && (
+                      <p className="text-xs text-destructive">{profileForm.formState.errors.username.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <div className="relative">
+                     <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                     <Input 
+                        id="email" 
+                        disabled 
+                        className="pl-9 bg-muted/50"
+                        {...profileForm.register("email")} 
+                     />
+                     <div className="absolute right-3 top-2.5">
+                        <Lock className="h-4 w-4 text-muted-foreground opacity-50" />
+                     </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    Email changes are currently disabled. Contact administrator.
+                  </p>
+                </div>
+              </form>
+            </CardContent>
+            <CardFooter className="flex justify-end border-t bg-muted/5 p-4">
+              <Button type="submit" form="profile-form" disabled={isLoading}>
+                {isLoading ? "Saving..." : "Save Changes"}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Password Change</CardTitle>
+              <CardDescription>
+                Ensure your account is using a long, random password to stay secure.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+               <form id="password-form" onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4 max-w-md">
+                  <div className="space-y-2">
+                    <Label htmlFor="current_password">Current Password</Label>
+                    <Input 
+                      id="current_password" 
+                      type="password"
+                      {...passwordForm.register("current_password")} 
+                    />
+                     {passwordForm.formState.errors.current_password && (
+                      <p className="text-xs text-destructive">{passwordForm.formState.errors.current_password.message}</p>
+                    )}
+                  </div>
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label htmlFor="new_password">New Password</Label>
+                    <Input 
+                      id="new_password" 
+                      type="password"
+                      {...passwordForm.register("new_password")} 
+                    />
+                     {passwordForm.formState.errors.new_password && (
+                      <p className="text-xs text-destructive">{passwordForm.formState.errors.new_password.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm_password">Confirm New Password</Label>
+                    <Input 
+                      id="confirm_password" 
+                      type="password"
+                      {...passwordForm.register("confirm_password")} 
+                    />
+                     {passwordForm.formState.errors.confirm_password && (
+                      <p className="text-xs text-destructive">{passwordForm.formState.errors.confirm_password.message}</p>
+                    )}
+                  </div>
+               </form>
+            </CardContent>
+             <CardFooter className="flex justify-end border-t bg-muted/5 p-4">
+              <Button type="submit" form="password-form" disabled={isLoading}>
+                {isLoading ? "Updating..." : "Update Password"}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+
+export default ProfilePage;

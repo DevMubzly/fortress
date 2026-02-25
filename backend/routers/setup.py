@@ -13,13 +13,12 @@ config_service = ConfigService()
 license_service = LicenseService()
 user_service = UserService()
 
-class SetupStatus(BaseModel):
-    completed: bool
-    step: int
 
 class SetupStatus(BaseModel):
     completed: bool
     step: int = 1
+
+
 
 @router.post("/reset")
 def reset_system():
@@ -27,22 +26,30 @@ def reset_system():
     Destructive: Wipes all data to restart onboarding.
     """
     from backend.database import get_db_connection
-    import os
     
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Delete all tables content but keep structure? 
-        # Or better -> recreate tables?
-        # User said "deletes evrything entirely from the database"
+        # List of tables to truncate/delete
+        # Order matters due to foreign keys if they exist
+        tables = [
+            "messages", 
+            "conversations", 
+            "request_logs", 
+            "audit_logs", 
+            "api_keys", 
+            "downloaded_models", 
+            "users", # Users last generally
+            "licenses" # License is effectively the 'root' of access
+        ]
         
-        tables = ["users", "licenses", "sessions", "audit_logs", "api_keys", "downloaded_models", "config"]
         for table in tables:
             try:
                 cursor.execute(f"DELETE FROM {table}")
-            except Exception:
-                pass # Table might not exist
+            except Exception as e:
+                print(f"Error clearing table {table}: {e}")
+                pass 
         
         conn.commit()
         conn.close()

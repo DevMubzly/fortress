@@ -134,12 +134,21 @@ class DownloadManager:
             model_name = f"{model_name}:latest"
 
         try:
+            logger.info(f"Starting pull for {model_name}")
             timeout = aiohttp.ClientTimeout(total=None) # No timeout for large files
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 payload = {"name": model_name, "stream": True}
                 async with session.post(f"{OLLAMA_BASE_URL}/api/pull", json=payload) as resp:
                     if resp.status != 200:
                         msg = f"Error: {resp.status}"
+                        try:
+                            # Try to read error body
+                            err_body = await resp.text()
+                            msg += f" - {err_body}"
+                        except:
+                            pass
+                        
+                        logger.error(f"Pull failed: {msg}")
                         self.active_downloads[model_id]['status'] = msg
                         self._update_db_status(model_id, 'error', error_message=msg)
                         await self.broadcast_status()
@@ -148,51 +157,68 @@ class DownloadManager:
                     buffer = ""
                     async for chunk in resp.content.iter_any():
                         if model_id not in self.active_downloads:
+                            logger.info(f"Download {model_id} removed from active list, stopping.")
                             return 
                         
                         if self.active_downloads[model_id].get('isPaused'):
-                            return
+                            await asyncio.sleep(1) # Wait while paused
+                            continue
 
                         if chunk:
-                            buffer += chunk.decode('utf-8')
-                            while "\n" in buffer:
-                                line, buffer = buffer.split("\n", 1)
-                                if not line.strip(): continue
+                            try:
+                                decoded_chunk = chunk.decode('utf-8', errors='ignore')
+                                buffer += decoded_chunk
                                 
-                                try:
-                                    data = json.loads(line)
-                                    status = data.get("status")
+                                while "\n" in buffer:
+                                    line, buffer = buffer.split("\n", 1)
+                                    if not line.strip(): continue
                                     
-                                    current = self.active_downloads[model_id]
-                                    current['status'] = status
-                                    
-                                    progress = 0
-                                    total_mb = 0
-                                    
-                                    if data.get('total') and data.get('completed'):
-                                        current['total'] = data.get('total')
-                                        current['completed'] = data.get('completed')
-                                        if data['total'] > 0:
-                                            progress = round((data['completed'] / data['total']) * 100)
-                                            current['progress'] = progress
-                                            total_mb = round(data['total'] / (1024*1024), 2)
-                                    
-                                    if status == 'success':
-                                        current['progress'] = 100
-                                        current['status'] = 'completed'
-                                        self._update_db_status(model_id, 'installed', 100, size_mb=total_mb)
-                                        await self.broadcast_status()
-                                        return
+                                    try:
+                                        data = json.loads(line)
+                                        status = data.get("status")
+                                        
+                                        current = self.active_downloads[model_id]
+                                        current['status'] = status
+                                        
+                                        progress = 0
+                                        total_mb = 0
+                                        
+                                        if data.get('total') and data.get('completed'):
+                                            current['total'] = data.get('total')
+                                            current['completed'] = data.get('completed')
+                                            if data['total'] > 0:
+                                                progress = round((data['completed'] / data['total']) * 100)
+                                                current['progress'] = progress
+                                                total_mb = round(data['total'] / (1024*1024), 2)
+                                        
+                                        if status == 'success':
+                                            logger.info(f"Download {model_id} completed successfully.")
+                                            current['progress'] = 100
+                                            current['status'] = 'completed'
+                                            self._update_db_status(model_id, 'installed', 100, size_mb=total_mb)
+                                            await self.broadcast_status()
+                                            return
 
-                                    # Only update DB periodically or on status change?
-                                    # For now, simplistic approach
-                                    # self._update_db_status(model_id, 'downloading', progress) 
-                                    await self.broadcast_status()
-                                    
-                                except json.JSONDecodeError:
-                                    pass
+                                        # Update DB less frequently to save I/O? 
+                                        # For now, let's update every 5% or on status change
+                                        last_progress = current.get('last_db_progress', -1)
+                                        if abs(progress - last_progress) >= 5 or status != current.get('last_db_status'):
+                                             self._update_db_status(model_id, 'downloading', progress)
+                                             current['last_db_progress'] = progress
+                                             current['last_db_status'] = status
+                                        
+                                        await self.broadcast_status()
+                                        
+                                    except json.JSONDecodeError:
+                                        # logger.warning(f"JSON decode error for line: {line[:50]}...")
+                                        pass
+                            except Exception as e:
+                                logger.error(f"Chunk processing error: {e}")
+                                # Don't abort, just skip chunk
+                                pass
+                                
         except Exception as e:
-            logger.error(f"Pull worker error: {e}")
+            logger.error(f"Pull worker error for {model_id}: {e}")
             msg = str(e)
             if "Connect call failed" in msg or "Connection refused" in msg:
                  msg = "Ollama Unreachable"
@@ -407,24 +433,33 @@ async def list_models():
         # 2. Get DB status
         try:
             conn = get_db_connection()
+            conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM downloaded_models")
-            db_models = {row['model_id']: dict(row) for row in cursor.fetchall()}
+            rows = cursor.fetchall()
+            db_models = {row['model_id']: dict(row) for row in rows}
             conn.close()
-        except:
+        except Exception as e:
+            logger.error(f"DB Error list_models: {e}")
             db_models = {}
 
         results = []
         
         # 3. Process Curated List
+        processed_ids = set()
+        
         for m in CURATED_MODELS:
             model_id = m['id']
-            full_id = f"{model_id}:latest" # normalization assumption
+            # normalization assumption - we store as 'llama3.1' or 'llama3.1:latest' in DB?
+            # Let's check both
+            
+            processed_ids.add(model_id)
             
             # Default state
             status = 'available'
             progress = 0
             size = m.get('size_range', 'Unknown')
+            db_entry = db_models.get(model_id)
             
             # Check Active Memory (most recent)
             if model_id in manager.active_downloads:
@@ -434,35 +469,60 @@ async def list_models():
                      status = 'error'
             
             # Check DB (persistence)
-            elif model_id in db_models:
-                row = db_models[model_id]
-                db_stat = row['status']
+            elif db_entry:
+                db_stat = db_entry['status']
                 if db_stat == 'installed':
                      status = 'installed'
                      # Use DB size if available
-                     if row['size_mb']: size = f"{row['size_mb']} MB"
+                     if db_entry['size_mb']: size = f"{db_entry['size_mb']} MB"
                 elif db_stat == 'downloading':
                      status = 'downloading'
-                     progress = row['progress']
+                     progress = db_entry['progress']
                 elif db_stat == 'error':
                      status = 'error'
 
-            # Check Ollama Real State (Ultimate Truth for Installed)
-            if model_id in installed_map or full_id in installed_map:
-                status = 'installed'
-                # Update size from real
-                real_m = installed_map.get(model_id) or installed_map.get(full_id)
-                if real_m:
-                    bytes_size = real_m.get('size', 0)
-                    if bytes_size > 1024**3:
-                        size = f"{round(bytes_size / (1024**3), 2)} GB"
-                    else:
-                        size = f"{round(bytes_size / (1024**2), 0)} MB"
+            # Update results
+            m_copy = m.copy()
+            m_copy['status'] = status
+            m_copy['download_progress'] = progress
+            if size != 'Unknown':
+                 m_copy['size_range'] = size
+            
+            results.append(m_copy)
 
+        # 4. Add any other models found in DB or Installed that weren't in Curated
+        # This covers "list of downloaded models kept somewhere in the db"
+        
+        # Combine keys from DB and Installed
+        other_ids = set(db_models.keys()) 
+        # Add installed names (strip tag for grouping if possible, but keep specific)
+        
+        for mid in other_ids:
+            if mid in processed_ids: continue
+            
+            # It's an extra model
+            entry = db_models[mid]
+            status = entry['status']
+            if mid in manager.active_downloads:
+                 status = 'downloading'
+            
             results.append({
-                "id": model_id,
-                "name": m["name"],
-                "provider": m["provider"],
+                "id": mid,
+                "name": mid, # localized name
+                "provider": "Unknown", # or infer
+                "versions": ["latest"],
+                "description": "Downloaded model",
+                "tags": ["custom"],
+                "size_range": f"{entry['size_mb']} MB" if entry['size_mb'] else "Unknown",
+                "status": status,
+                "download_progress": entry['progress'] if status == 'downloading' else 0,
+                "default_tag": "latest"
+            })
+            processed_ids.add(mid)
+
+
+        return results
+
                 "size": size,
                 "parameter_count": m["versions"][-1].upper(), 
                 "quantization": "4-bit (Default)", # simplified

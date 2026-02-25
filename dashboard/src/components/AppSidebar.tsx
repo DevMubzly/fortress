@@ -104,12 +104,12 @@ const AppSidebar = () => {
         {!isCollapsed ? (
           <div className="flex items-center justify-between p-2">
             <div className="flex items-center gap-2 overflow-hidden">
-               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-                  <Shield className="h-4 w-4" />
+               <div className="flex h-8 w-8 shrink-0 items-center justify-center">
+                  <Logo size={28} />
                </div>
                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Fortress</span>
-                  <span className="truncate text-xs text-muted-foreground">{license?.organization || "Enterprise"}</span>
+                  <span className="truncate font-semibold">Fortress Plan</span>
+                  <span className="truncate text-xs text-muted-foreground">{license?.organization || "Organization"}</span>
                </div>
             </div>
             <Button variant="ghost" size="icon" onClick={toggle} className="h-7 w-7 text-muted-foreground hover:text-foreground">
@@ -118,8 +118,8 @@ const AppSidebar = () => {
           </div>
         ) : (
            <div className="flex justify-center p-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Shield className="h-4 w-4" />
+              <div className="flex h-8 w-8 items-center justify-center">
+                  <Logo size={28} />
               </div>
            </div>
         )}

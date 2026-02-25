@@ -200,29 +200,29 @@ const BottomTray = () => {
                   <ChevronUp className="h-2.5 w-2.5 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-44 mb-0.5">
-                <DropdownMenuItem className="gap-1.5 text-[10px] py-1" onClick={() => navigate('/profile')}>
-                  <User className="h-3 w-3" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem className="gap-1.5 text-[10px] py-1" onClick={() => navigate('/support')}>
-                  <HelpCircle className="h-3 w-3" />
-                  Support
-                </DropdownMenuItem>
-                <DropdownMenuItem className="gap-1.5 text-[10px] py-1" onClick={() => window.open('https://fortress-stack.tech/docs', '_blank')}>
-                  <FileText className="h-3 w-3" />
-                  Documentation
-                </DropdownMenuItem>
-                
+              <DropdownMenuContent align="start" side="top" className="w-56" sideOffset={0}>
+                <div className="flex items-center gap-2 p-2">
+                  <div className="h-8 w-8 rounded-full bg-sidebar-primary/10 flex items-center justify-center text-sidebar-primary">
+                    <User className="h-4 w-4" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{currentUser?.full_name || "User"}</span>
+                    <span className="text-xs text-muted-foreground">{currentUser?.email || "user@example.com"}</span>
+                  </div>
+                </div>
                 <DropdownMenuSeparator />
-                
-                <DropdownMenuItem className="gap-1.5 text-[10px] py-1 text-destructive hover:text-destructive focus:text-destructive" onClick={() => setShowResetModal(true)}>
-                  <RotateCw className="h-3 w-3" />
-                  Reset Onboarding
+                <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="gap-1.5 text-[10px] py-1" onClick={handleLogout}>
-                  <LogOut className="h-3 w-3" />
-                  Log out
+                <DropdownMenuItem onClick={() => setShowResetModal(true)} className="text-destructive focus:text-destructive">
+                  <RotateCw className="mr-2 h-4 w-4" />
+                  <span>Restart Onboarding</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
