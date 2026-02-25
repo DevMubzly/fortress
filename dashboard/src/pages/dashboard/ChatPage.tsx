@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, FormEvent } from "react";
+import { Message } from "ai";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,10 +34,6 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
 
 interface ChatConversation {
   id: string;
@@ -51,10 +48,9 @@ interface Model {
   status: string;
 }
 
+import { useChat } from "@ai-sdk/react";
+
 const ChatPage = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [models, setModels] = useState<Model[]>([]);
   const [chatHistory, setChatHistory] = useState<ChatConversation[]>([]);
@@ -64,6 +60,24 @@ const ChatPage = () => {
   const [newTitle, setNewTitle] = useState("");
   const [apiKey, setApiKey] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput, append, setMessages } = useChat({
+    api: "http://localhost:8000/api/chat/completions",
+    body: {
+      model: selectedModel,
+      conversation_id: selectedChatId
+    },
+    headers: {
+      "Authorization": `Bearer ${localStorage.getItem("fortress_token")}`,
+      "X-Fortress-Key": apiKey || ""
+    },
+    onFinish: () => {
+        fetchHistory();
+    },
+    onError: (err) => {
+        toast({ title: "Error", description: err.message || "Failed to generate response", variant: "destructive" });
+    }
+  });
 
   useEffect(() => {
     const key = localStorage.getItem("fortress_api_key");
@@ -122,27 +136,30 @@ const ChatPage = () => {
     }
   };
 
+
   const loadConversation = async (id: string) => {
     try {
-      setIsLoading(true);
       const token = localStorage.getItem("fortress_token");
       const res = await fetch(`http://localhost:8000/api/chat/history/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
-        setMessages(data.messages.map((m: any) => ({ role: m.role, content: m.content })));
+        // Convert to ai SDK Message format.
+        // Backend stores role/content. ai SDK uses role: Message['role'].
+        setMessages(data.messages.map((m: any) => ({ 
+            id: m.id || String(Math.random()), 
+            role: m.role as any, 
+            content: m.content 
+        })));
         setSelectedChatId(id);
         if (data.conversation.model) {
-             // Only set if installed, otherwise keep current or fallback
              const isInstalled = models.find(m => m.id === data.conversation.model);
              if (isInstalled) setSelectedModel(data.conversation.model);
         }
       }
     } catch (e) {
       toast({ title: "Error", description: "Failed to load conversation", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -159,6 +176,7 @@ const ChatPage = () => {
         if (selectedChatId === id) {
            setMessages([]);
            setSelectedChatId(null);
+           setInput("");
         }
         toast({ title: "Success", description: "Conversation deleted" });
       }
@@ -193,95 +211,32 @@ const ChatPage = () => {
     }
   };
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-    
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!selectedModel) {
-        toast({ title: "Error", description: "No model selected or installed", variant: "destructive" });
+        toast({ title: "Error", description: "No model selected", variant: "destructive" });
         return;
     }
-
-    const userMsg = input.trim();
-    setInput("");
-    const newMessages: Message[] = [...messages, { role: "user", content: userMsg }];
-    setMessages(newMessages);
-    setIsLoading(true);
-
-    try {
-      const token = localStorage.getItem("fortress_token");
-      const res = await fetch("http://localhost:8000/api/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "X-Fortress-Key": apiKey || ""
+    // append handles validation and sending.
+    // However, handleSubmit uses 'input' state.
+    handleSubmit(e, {
+        allowEmptySubmit: false,
+        body: {
+            model: selectedModel,
+            conversation_id: selectedChatId
         },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: newMessages,
-          conversation_id: selectedChatId
-        })
-      });
-
-      if (!res.ok) {
-        if (res.status === 403 || res.status === 401) {
-             toast({ title: "Auth Error", description: "Invalid API Key or Permissions", variant: "destructive" });
-             // handleRemoveApiKey(); // Optional: remove if invalid
+        headers: {
+             "Authorization": `Bearer ${localStorage.getItem("fortress_token")}`,
+             "X-Fortress-Key": apiKey || ""
         }
-        throw new Error("Failed to send message");
-      }
-
-      const reader = res.body?.getReader();
-      if (!reader) throw new Error("No reader");
-
-      const decoder = new TextDecoder();
-      let assistantMsg = "";
-      
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
-        
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          try {
-            const data = JSON.parse(line);
-             if (data.id && !selectedChatId) {
-                setSelectedChatId(data.id);
-                // Don't refetch history immediately to avoid jump, wait for end
-             }
-             if (data.content) {
-               assistantMsg += data.content;
-               setMessages(prev => {
-                 const updated = [...prev];
-                 updated[updated.length - 1] = { role: "assistant", content: assistantMsg };
-                 return updated;
-               });
-             }
-          } catch (e) {
-            console.error("Error parsing chunk", e);
-          }
-        }
-      }
-      
-      fetchHistory();
-
-    } catch (error) {
-      console.error(error);
-      toast({ title: "Error", description: "Failed to generate response", variant: "destructive" });
-      setMessages(prev => prev.slice(0, -1));
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   const handleNewChat = () => {
     setSelectedChatId(null);
     setMessages([]);
+    setInput("");
   };
 
   const filteredHistory = chatHistory.filter(c => 
@@ -473,14 +428,14 @@ const ChatPage = () => {
                  </div>
                  <Textarea 
                     value={input}
-                    onChange={e => setInput(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+                    onChange={handleInputChange}
+                    onKeyDown={e => e.key === "Enter" && !e.shiftKey && onSubmit(e)}
                     placeholder="Message Fortress..."
                     className="min-h-[50px] max-h-[200px] bg-card resize-none pr-12 py-3 shadow-sm focus-visible:ring-1"
                     disabled={isLoading}
                  />
                  <Button 
-                    onClick={handleSend} 
+                    onClick={onSubmit}
                     disabled={isLoading || !input.trim() || !selectedModel}
                     size="icon"
                     className="absolute right-2 bottom-2 h-8 w-8 transition-all hover:scale-105"

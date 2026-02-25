@@ -1,24 +1,30 @@
-import { createOpenAI } from '@ai-sdk/openai';
-import { streamText } from 'ai';
+import { ChatOpenAI } from "@langchain/openai";
+import { HumanMessage, SystemMessage, AIMessage } from "@langchain/core/messages";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+
+// Force dynamic - this is Next.js App Router
+export const runtime = 'edge';
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  try {
+    const { messages } = await req.json();
 
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-     return new Response(JSON.stringify({ error: "Missing API Key configuration" }), { status: 500 });
-  }
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: "Missing API Key configuration" }), { status: 500 });
+    }
 
-  // Re-initialize per request to ensure env vars are picked up
-  const groq = createOpenAI({
-    apiKey: apiKey,
-    baseURL: 'https://api.groq.com/openai/v1',
-  });
+    const model = new ChatOpenAI({
+      apiKey: apiKey,
+      configuration: {
+        baseURL: 'https://api.groq.com/openai/v1',
+      },
+      modelName: 'llama-3.3-70b-versatile',
+      temperature: 0.7,
+      streaming: true,
+    });
 
-  const result = streamText({
-    model: groq('llama-3.3-70b-versatile'),
-    messages,
-    system: `You are "Fortress", the official AI assistant for the Fortress Documentation.
+    const systemContent = `You are "Fortress", the official AI assistant for the Fortress Documentation.
     Your sole purpose is to help users understand, install, configure, and use the Fortress AI Platform.
     
     GUIDELINES:
@@ -34,9 +40,39 @@ export async function POST(req: Request) {
     - Supported backends: Ollama, vLLM.
     - Supported models: Llama 3, Mistral, Gemma.
     
-    Answer the user's question clearly and helpfuly based on these facts.`,
-  });
+    Answer the user's question clearly and helpfuly based on these facts.`;
 
-  return result.toDataStreamResponse();
+    const langchainMessages = [
+      new SystemMessage(systemContent),
+      ...messages.map((m: any) => {
+        if (m.role === 'user') return new HumanMessage(m.content);
+        if (m.role === 'assistant') return new AIMessage(m.content);
+        return new HumanMessage(m.content);
+      })
+    ];
+
+    const parser = new StringOutputParser();
+    const stream = await model.pipe(parser).stream(langchainMessages);
+
+    const encoder = new TextEncoder();
+    
+    // Convert AsyncGenerator to ReadableStream
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        for await (const chunk of stream) {
+          controller.enqueue(encoder.encode(chunk));
+        }
+        controller.close();
+      }
+    });
+
+    return new Response(readableStream, {
+        headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+        }
+    });
+
+  } catch (e: any) {
+    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+  }
 }
-

@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Bot, FileText, Layout, Loader2, MessageSquare, Send, Sparkles, X } from "lucide-react";
-import { useChat } from "@ai-sdk/react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,27 +17,104 @@ import {
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export function DocsAIPane() {
   const [open, setOpen] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput, append } = useChat({
-    api: "/api/chat",
-  });
+  const [messages, setMessages] = React.useState<Message[]>([]);
+  const [input, setInput] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+  };
+
+  const processStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, assistantMsgId: string) => {
+    const decoder = new TextDecoder();
+    let assistantMessageContent = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        assistantMessageContent += chunk;
+
+        setMessages((prev) => 
+          prev.map(msg => 
+            msg.id === assistantMsgId 
+              ? { ...msg, content: assistantMessageContent }
+              : msg
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Stream error:", err);
+      setError("Failed to stream response.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sendMessage = async (content: string) => {
+    if (!content.trim() || isLoading) return;
+    
+    setError(null);
+
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', content };
+    const assistantMsgId = (Date.now() + 1).toString();
+    // Add user message immediately
+    setMessages(prev => [...prev, userMsg]);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      // Add placeholder assistant message
+      setMessages(prev => [...prev, { id: assistantMsgId, role: 'assistant', content: "" }]);
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })) 
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch");
+      if (!response.body) throw new Error("No response body");
+
+      const reader = response.body.getReader();
+      await processStream(reader, assistantMsgId);
+
+    } catch (error) {
+      console.error(error);
+      setIsLoading(false);
+      setError("An error occurred while communicating with the server.");
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMsgId 
+          ? { ...msg, content: "Error: Failed to get response." }
+          : msg
+      ));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
+  };
+  
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      if (!(input || "").trim() || isLoading) {
-          e.preventDefault();
-          return;
-      }
-      // Let the textarea behave normally if we want newlines with Shift+Enter
-      // But here we want submit on Enter
       e.preventDefault();
-      
-      // Create a synthetic event or just call handleSubmit
-      const fakeEvent = { preventDefault: () => {} } as React.FormEvent<HTMLFormElement>;
-      handleSubmit(fakeEvent);
+      handleSubmit(e as any);
     }
   };
 
@@ -55,12 +131,8 @@ export function DocsAIPane() {
     "Explain the security architecture",
   ];
 
-  const handleSuggestedClick = async (q: string) => {
-      // For useChat, we can use append to add a user message and trigger response
-      await append({
-          role: 'user',
-          content: q
-      });
+  const handleSuggestedClick = (q: string) => {
+      sendMessage(q);
   };
 
   return (

@@ -123,17 +123,17 @@ const MainContent = () => {
         isCollapsed ? "ml-14" : "ml-64"
       )}>
         {/* Fixed Header */}
-        <header className="flex items-center justify-between px-6 py-3 shrink-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
+        <header className="flex items-center justify-between px-6 py-3 shrink-0 bg-background z-10 border-b">
             <h1 className="text-sm font-medium font-persis text-foreground">{pageTitle}</h1>
             <div className="flex items-center gap-4">
                 <NotificationCenter />
             </div>
         </header>
 
-        {/* Main Content with rounded borders and spacing */}
-        <main className="flex-1 overflow-hidden p-2 pt-0 md:p-4 md:pt-0 pb-16 md:pb-16">
-            <div className="h-full w-full rounded-tl-2xl rounded-bl-none md:rounded-tl-3xl bg-card border border-border/50 shadow-sm overflow-hidden flex flex-col relative text-clip mb-6">
-                 <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-32">
+        {/* Main Content with full screen layout */}
+        <main className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-hidden flex flex-col relative bg-card">
+                 <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-10">
                     <Outlet />
                  </div>
             </div>

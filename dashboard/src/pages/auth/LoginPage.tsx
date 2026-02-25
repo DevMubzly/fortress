@@ -509,6 +509,7 @@ const LoginPage = () => {
                             <div className="relative">
                                 <Input 
                                     id="password" 
+                                    placeholder="**********"
                                     type={showPassword ? "text" : "password"} 
                                     value={password} 
                                     onChange={e => setPassword(e.target.value)} 

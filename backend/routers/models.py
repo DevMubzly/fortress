@@ -298,6 +298,17 @@ CURATED_MODELS = [
         "default_tag": "7b"
     },
     {
+        "id": "qwen2.5:0.5b",
+        "name": "Qwen 2.5 0.5B",
+        "provider": "Alibaba Cloud",
+        "versions": ["0.5b"],
+        "description": "Ultra-lightweight Qwen 2.5 model. Incredible speed and low resource usage, perfect for local inference on older hardware.",
+        "tags": ["ultra-lightweight", "coding", "fast"],
+        "pull_count": "500K+",
+        "size_range": "350MB",
+        "default_tag": "latest"
+    },
+    {
         "id": "mistral",
         "name": "Mistral (v0.3)",
         "provider": "Mistral AI",
@@ -521,16 +532,6 @@ async def list_models():
             processed_ids.add(mid)
 
 
-        return results
-
-                "size": size,
-                "parameter_count": m["versions"][-1].upper(), 
-                "quantization": "4-bit (Default)", # simplified
-                "status": status,
-                "description": m["description"],
-                "tags": m["tags"],
-                "download_progress": progress
-            })
 
         # 4. Add unknown installed models
         curated_ids = [c['id'] for c in CURATED_MODELS]

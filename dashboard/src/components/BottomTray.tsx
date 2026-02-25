@@ -372,9 +372,9 @@ const BottomTray = () => {
                     <User className="h-3 w-3" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="gap-1.5 text-[10px] py-1">
-                    <Settings className="h-3 w-3" />
-                    Settings
+                  <DropdownMenuItem onClick={() => setShowResetModal(true)} className="gap-1.5 text-[10px] py-1 text-destructive focus:text-destructive">
+                    <RotateCw className="h-3 w-3" />
+                    Restart Onboarding
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="gap-1.5 text-[10px] py-1 text-destructive">

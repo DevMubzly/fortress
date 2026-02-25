@@ -144,6 +144,42 @@ class UserService:
         conn.commit()
         conn.close()
 
+    def update_user_profile(self, user_id: int, update_data: dict) -> User:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        fields = []
+        values = []
+        
+        if "full_name" in update_data and update_data["full_name"] is not None:
+            fields.append("full_name = ?")
+            values.append(update_data["full_name"])
+            
+        if "username" in update_data and update_data["username"] is not None:
+            fields.append("username = ?")
+            values.append(update_data["username"])
+            
+        if not fields:
+            conn.close()
+            return self.get_user_by_id(user_id)
+            
+        values.append(user_id)
+        query = f"UPDATE users SET {', '.join(fields)} WHERE id = ?"
+        
+        cursor.execute(query, tuple(values))
+        conn.commit()
+        conn.close()
+        
+        return self.get_user_by_id(user_id)
+
+    def change_password(self, user_id: int, old_password: str, new_password: str) -> bool:
+        user = self.get_user_by_id(user_id)
+        if not user or not verify_password(old_password, user.password_hash):
+            return False
+            
+        self.update_password(user_id, new_password)
+        return True
+
     def list_users(self) -> List[User]:
         conn = get_db_connection()
         cursor = conn.cursor()

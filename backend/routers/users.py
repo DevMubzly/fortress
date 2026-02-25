@@ -11,12 +11,34 @@ user_service = UserService()
 class UserStatusUpdate(BaseModel):
     active: bool
 
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    username: Optional[str] = None
+
+class PasswordUpdate(BaseModel):
+    old_password: str
+    new_password: str
+
 class UserRoleUpdate(BaseModel):
     role: str
 
 @router.get("/", response_model=List[User])
 async def list_users(current_user: User = Depends(deps.get_current_admin_user)):
     return user_service.list_users()
+
+@router.patch("/me", response_model=User)
+async def update_user_me(user_in: UserUpdate, current_user: User = Depends(deps.get_current_user)):
+    return user_service.update_user_profile(
+        current_user.id, 
+        user_in.dict(exclude_unset=True)
+    )
+
+@router.post("/me/password", response_model=dict)
+async def change_password(pass_in: PasswordUpdate, current_user: User = Depends(deps.get_current_user)):
+    success = user_service.change_password(current_user.id, pass_in.old_password, pass_in.new_password)
+    if not success:
+         raise HTTPException(status_code=400, detail="Incorrect password")
+    return {"message": "Password updated successfully"}
 
 @router.post("/", response_model=User)
 async def create_user(user_in: UserCreate, current_user: User = Depends(deps.get_current_admin_user)):

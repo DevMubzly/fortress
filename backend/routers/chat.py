@@ -120,19 +120,26 @@ async def chat_completions(req: ChatRequest, conversation_id: str = None, curren
                                 if "message" in data:
                                     content = data["message"]["content"]
                                     full_response += content
-                                    yield json.dumps({"id": conv_id, "content": content}) + "\n"
+                                    # Vercel AI SDK expects 0:"text" format for text stream parts if using useChat with stream protocol
+                                    # But since we are using a custom backend, simplified plain text or basic NDJSON might be tricky.
+                                    # Let's use the Vercel AI Data Stream Protocol: 0: "text_content"\n
+                                    # We need to JSON encode the string content.
+                                    yield f'0:{json.dumps(content)}\n'
                                 if data.get("done"):
+                                    # Send conversation ID as data?
+                                    # Protocol: d: "data"\n
+                                    yield f'd:{json.dumps({"conversationId": conv_id})}\n'
                                     break
                             except:
                                 pass
         except Exception as e:
-            yield json.dumps({"error": str(e)}) + "\n"
+            yield f'0:{json.dumps("Error: " + str(e))}\n'
         
         # 4. Save Assistant Message (after stream)
         if full_response:
             save_message(conv_id, 'assistant', full_response)
 
-    return StreamingResponse(generate(), media_type="application/x-ndjson")
+    return StreamingResponse(generate(), media_type="text/plain; charset=utf-8")
 
 @router.get("/history")
 async def list_history(current_user: User = Depends(deps.get_current_user)):

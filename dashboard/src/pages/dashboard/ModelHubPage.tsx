@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/PageHeader";
 import { useDownload } from "@/contexts/DownloadContext";
@@ -169,118 +170,117 @@ const ModelHubPage = () => {
   const ModelCard = ({ model }: { model: Model }) => {
     const dlState = downloads[model.id];
     // Prioritize local dlState over server state for responsiveness
+    // Calculate effective states
     const isDownloading = !!dlState || (model.status === 'downloading' && !dlState);
     const isError = model.status === 'error' || dlState?.status === 'error';
     const progress = dlState?.progress || model.download_progress || 0;
+    const isInstalled = model.status === 'installed' && !isDownloading;
     const statusMsg = dlState?.status || (isError ? "Download Failed" : "Starting...");
 
     return (
     <Card 
-        className={`flex flex-col h-full border-border/50 bg-secondary/10 hover:bg-secondary/20 transition-all duration-200 cursor-pointer group hover:shadow-md ${isDownloading ? 'border-primary/50 bg-primary/5' : ''} ${isError ? 'border-destructive/50 bg-destructive/5' : ''}`}
+        className={`flex flex-col h-full border hover:border-sidebar-primary/50 transition-all duration-300 group overflow-hidden ${isInstalled ? 'bg-card' : 'bg-muted/10'} hover:shadow-lg`}
         onClick={() => {
-            console.log("Card clicked", model);
             setSelectedModel(model);
         }}
     >
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start gap-2">
-            <div className="flex-1 min-w-0">
-                <CardTitle className="text-lg font-bold flex items-center gap-2 truncate">
-                   <span className="truncate" title={model.name}>{model.name}</span>
-                   {model.status === 'installed' && <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />}
-                   {isError && <AlertCircle className="w-4 h-4 text-destructive shrink-0" />}
-                </CardTitle>
-                <CardDescription className="text-xs font-mono mt-1 text-muted-foreground/80 flex items-center gap-2">
-                    <span className="bg-background/50 px-1.5 py-0.5 rounded border border-border/50">{model.provider}</span>
-                    <span>•</span>
-                    <span>{model.parameter_count}</span>
-                    <span>•</span>
-                    <span>{model.quantization}</span>
-                </CardDescription>
-            </div>
-            <Badge variant={model.status === 'installed' ? 'default' : 'outline'} className="text-[10px] uppercase shrink-0 h-5 px-1.5">
-                {model.size}
-            </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1 pb-3 flex flex-col">
-        <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px] mb-4 group-hover:text-foreground transition-colors">
-            {model.description}
-        </p>
-        
-        <div className="flex flex-wrap gap-1.5 mb-4 mt-auto">
-            {model.tags.slice(0, 3).map(tag => (
-                <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal bg-background/50 text-muted-foreground">
-                    #{tag}
-                </Badge>
-            ))}
-            {model.tags.length > 3 && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal bg-background/50 text-muted-foreground">
-                    +{model.tags.length - 3}
-                </Badge>
-            )}
-        </div>
-
-        {(isDownloading || isError) && (
-            <div className="space-y-2 mt-auto bg-background/50 p-3 rounded-lg border border-border/50 shadow-sm" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between text-[11px] font-medium items-center">
-                    <span className={`truncate max-w-[120px] ${isError ? 'text-destructive' : 'text-primary'}`}>
-                        {isError ? "Download Failed" : dlState?.isPaused ? "Paused" : "Downloading..."}
-                    </span>
-                    <span className="text-muted-foreground">{Math.round(progress)}%</span>
+      <CardHeader className="p-5 pb-0 space-y-3">
+        <div className="flex justify-between items-start gap-4">
+            <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="font-mono text-[10px] bg-sidebar-accent/50 text-sidebar-foreground/70 hover:bg-sidebar-accent">
+                        {model.provider}
+                    </Badge>
+                    {isInstalled && (
+                        <div className="flex items-center gap-1 text-[10px] text-green-600 font-medium px-1.5 py-0.5 rounded-full bg-green-500/10">
+                            <CheckCircle className="w-3 h-3" />
+                            <span>Installed</span>
+                        </div>
+                    )}
                 </div>
-                <Progress 
-                    value={progress} 
-                    className={`h-2 text-primary ${dlState?.isPaused ? 'opacity-50' : ''} ${isError ? 'bg-destructive/20' : ''}`} 
-                    indicatorClassName={isError ? 'bg-destructive' : ''}
-                />
-                 {isError && (
-                    <Button variant="ghost" size="sm" className="w-full h-6 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10 mt-1" onClick={(e) => handleRetry(model.id, e)}>
-                        Retry Download
-                    </Button>
-                 )}
+                <CardTitle className="text-base font-bold truncate leading-snug tracking-tight text-foreground" title={model.name}>
+                   {model.name}
+                </CardTitle>
             </div>
-        )}
+            <div className="flex flex-col items-end gap-1 shrink-0">
+                <Badge variant="outline" className="font-mono text-[10px] text-muted-foreground border-border/60">
+                    {model.parameter_count}
+                </Badge>
+                <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider">{model.quantization}</span>
+            </div>
+        </div>
+        <Separator className="bg-border/40" />
+      </CardHeader>
+      
+      <CardContent className="p-5 py-4 flex-grow space-y-4">
+          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 min-h-[4.5em]">
+              {model.description}
+          </p>
+          
+          <div className="flex flex-wrap gap-1.5">
+              {model.tags.slice(0, 4).map(tag => (
+                  <span key={tag} className="text-[10px] bg-secondary/80 px-2 py-1 rounded-md text-secondary-foreground font-medium">
+                      #{tag}
+                  </span>
+              ))}
+              {model.tags.length > 4 && (
+                  <span className="text-[10px] text-muted-foreground px-1.5 py-1 font-medium">+{model.tags.length - 4}</span>
+              )}
+          </div>
       </CardContent>
-      <CardFooter className="pt-0 mt-auto border-t border-border/10 bg-black/5 dark:bg-white/5 p-3" onClick={(e) => e.stopPropagation()}>
-        {model.status === 'installed' ? (
-             <div className="flex w-full gap-2 transition-opacity opacity-70 group-hover:opacity-100">
-                 <Button variant="default" className="flex-1 h-8 text-xs gap-1.5 shadow-sm" onClick={(e) => handleLoadModel(model.id, e)}>
-                    <Zap className="w-3.5 h-3.5" />
-                    Load
-                 </Button>
-                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => setDeleteModelId(model.id)}>
-                    <Trash2 className="w-3.5 h-3.5" />
-                 </Button>
-             </div>
-        ) : isDownloading ? (
-            <div className="flex w-full gap-2">
-                {dlState?.isPaused ? (
-                    <Button variant="outline" className="flex-1 h-8 text-xs gap-1.5 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/10" onClick={(e) => { e.stopPropagation(); resumeDownload(model.id); }}>
-                        <Play className="w-3.5 h-3.5" />
-                        Resume
-                    </Button>
-                ) : (
-                    <Button variant="outline" className="flex-1 h-8 text-xs gap-1.5" onClick={(e) => { e.stopPropagation(); pauseDownload(model.id); }}>
-                        <Pause className="w-3.5 h-3.5" />
-                        Pause
-                    </Button>
-                )}
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); stopDownload(model.id); }}>
-                    <Square className="w-3.5 h-3.5 fill-current" />
+
+      <CardFooter className="p-4 pt-0 mt-auto">
+          {isDownloading ? (
+              <div className="w-full bg-secondary/20 rounded-lg p-3 space-y-3 border border-border/50">
+                  <div className="flex justify-between items-center text-xs">
+                      <span className="font-medium text-sidebar-primary flex items-center gap-2">
+                          <RotateCw className="w-3.5 h-3.5 animate-spin" />
+                          {statusMsg === "Starting..." ? "Initializing..." : "Downloading..."}
+                      </span>
+                      <span className="font-mono text-muted-foreground">{Math.round(progress)}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2 w-full bg-sidebar-primary/20" />
+                  <div className="flex gap-2 justify-end pt-1">
+                     <Button size="icon" variant="ghost" className="h-7 w-7 rounded-full hover:bg-background/80" onClick={(e) => { e.stopPropagation(); pauseDownload(model.id); }}>
+                        <Pause className="h-3.5 w-3.5" />
+                     </Button>
+                     <Button size="icon" variant="ghost" className="h-7 w-7 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={(e) => { e.stopPropagation(); stopDownload(model.id); }}>
+                        <Square className="h-3.5 w-3.5 fill-current" />
+                     </Button>
+                  </div>
+              </div>
+          ) : isInstalled ? (
+             <div className="flex w-full gap-3">
+                <Button 
+                    className="flex-1 h-9 text-xs font-semibold shadow-sm" 
+                    variant="default"
+                    onClick={(e) => handleLoadModel(model.id, e)}
+                >
+                    <Zap className="mr-2 h-3.5 w-3.5" />
+                    Load Model
                 </Button>
-            </div>
-        ) : isError ? (
-             <Button variant="default" className="w-full h-8 text-xs gap-1.5 bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={(e) => handleRetry(model.id, e)}>
-                <RotateCw className="w-3.5 h-3.5" />
-                Retry Download
-            </Button>
-        ) : (
-            <Button variant="secondary" className="w-full h-8 text-xs gap-1.5 hover:bg-primary hover:text-primary-foreground shadow-sm transition-all" onClick={(e) => handleDownload(model.id, e)}>
-                <Download className="w-3.5 h-3.5" />
-                Download Model
-            </Button>
-        )}
+                <Button 
+                    size="icon" 
+                    variant="outline" 
+                    className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/5 border-border/60"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteModelId(model.id);
+                    }}
+                >
+                    <Trash2 className="h-4 w-4" />
+                </Button>
+             </div>
+          ) : (
+             <Button 
+                className="w-full h-9 text-xs font-semibold border-primary/20 hover:border-primary/50 group-hover:bg-sidebar-primary group-hover:text-sidebar-primary-foreground transition-all duration-300 shadow-sm" 
+                variant="secondary"
+                onClick={(e) => handleDownload(model.id, e)}
+             >
+                <Download className="mr-2 h-4 w-4" />
+                Download ({model.size})
+             </Button>
+          )}
       </CardFooter>
     </Card>
     );
