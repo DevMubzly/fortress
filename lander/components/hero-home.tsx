@@ -1,6 +1,7 @@
 import Image from "next/image";
 import * as motion from "motion/react-client"
 import OpenContactModalButton from "./open-contact-modal-button";
+import GlobeDemo from "@/components/globe-demo";
 
 export default function HeroHome() {
   return (
@@ -62,19 +63,7 @@ export default function HeroHome() {
               data-aos="zoom-y-out"
               data-aos-delay={600}
             >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                className="w-full h-auto"
-              >
-                <Image
-                  src="/images/Visual22.webp"
-                  alt="Visual22"
-                  width={600}
-                  height={600}
-                  className="w-full h-auto"
-                />
-              </motion.div>
+              <GlobeDemo autoRotate={false} />
             </div>
           </div>
         </div>

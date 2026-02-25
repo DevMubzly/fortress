@@ -1,8 +1,6 @@
-import GlobeDemo from "@/components/globe-demo";
-
 export default function FeaturesPlanet() {
   return (
-    <section className="relative before:absolute before:inset-0 before:-z-20 before:bg-gradient-to-br before:from-indigo-50 before:to-blue-100/50">
+    <section className="relative before:absolute before:inset-0 before:-z-20 before:bg-[linear-gradient(135deg,theme(colors.indigo.50)_50%,theme(colors.white)_50%)]">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="py-12 md:py-20">
           {/* Section header */}
@@ -11,14 +9,7 @@ export default function FeaturesPlanet() {
               Data sovereignty, security, and compliance
             </h2>
           </div>
-          {/* Planet */}
-          <div className="pb-16 md:pb-20" data-aos="zoom-y-out">
-            <div className="text-center">
-              <div className="relative mx-auto w-full max-w-3xl">
-                <GlobeDemo />
-              </div>
-            </div>
-          </div>
+          {/* Planet - Removed */}
           {/* Grid */}
           <div className="grid overflow-hidden sm:grid-cols-2 lg:grid-cols-3 *:relative *:p-6 *:before:absolute *:before:bg-gray-200/60 *:before:[block-size:100vh] *:before:[inline-size:1px] *:before:[inset-block-start:0] *:before:[inset-inline-start:-1px] *:after:absolute *:after:bg-gray-200/60 *:after:[block-size:1px] *:after:[inline-size:100vw] *:after:[inset-block-start:-1px] *:after:[inset-inline-start:0] md:*:p-10">
             <article>
