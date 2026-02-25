@@ -134,6 +134,84 @@ async def get_license_info():
 class LicenseUpdate(BaseModel):
     file_content: str
 
+from backend.services.license_service import LicenseService
+import base64
+
 @router.post("/license")
 async def update_license(data: LicenseUpdate):
-    raise HTTPException(status_code=501, detail="License update must use setup or admin endpoint")
+    try:
+        service = LicenseService()
+        
+        # 1. Get current license to check organization
+        current_license = service.get_license()
+        
+        # 2. Parse and verify new license WITHOUT saving yet
+        # We RE-IMPLEMENT the parsing logic here to inspect before saving
+        # or we could refactor LicenseService, but let's do it here for safety
+        
+        file_content_b64 = data.file_content
+        
+        # Step 1: Decode the upload payload (base64 -> bytes)
+        try:
+            decoded_bytes = base64.b64decode(file_content_b64)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid base64 encoding")
+
+        # Step 2: Try to parse as JSON directly
+        license_full_obj = None
+        try:
+            license_str = decoded_bytes.decode('utf-8')
+            license_full_obj = json.loads(license_str)
+            
+            if isinstance(license_full_obj, str):
+                 try:
+                     inner_bytes = base64.b64decode(license_full_obj)
+                     license_full_obj = json.loads(inner_bytes.decode('utf-8'))
+                 except Exception:
+                     try:
+                         license_full_obj = json.loads(license_full_obj)
+                     except:
+                         pass
+        except json.JSONDecodeError:
+            try:
+                inner_bytes = base64.b64decode(decoded_bytes)
+                license_str = inner_bytes.decode('utf-8')
+                license_full_obj = json.loads(license_str)
+            except Exception:
+                raise HTTPException(status_code=400, detail="Invalid license file format")
+
+        if not isinstance(license_full_obj, dict):
+             raise HTTPException(status_code=400, detail="Invalid license structure")
+
+        # Step 3: Verify signature
+        try:
+            payload = service.verify_license_signature(license_full_obj)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid license signature: {str(e)}")
+
+        # Step 4: Check Organization Match
+        new_org = payload.get("organization")
+        
+        if current_license:
+            current_org = current_license.get("client_name") or current_license.get("organization")
+            # Normalize for comparison?
+            if current_org and new_org and current_org.lower().strip() != new_org.lower().strip():
+                # REVOKE / REJECT
+                raise HTTPException(status_code=403, detail=f"License Organization Mismatch. Expected '{current_org}', got '{new_org}'. Update rejected.")
+        
+        # Step 5: Save (Implement)
+        # We can use the service method now that we verified the org
+        # But verify_license_signature returned payload, and save_license needs payload + raw string
+        # We need to reconstruct the raw string or use the one we decoded.
+        # Actually, process_license_content does it all. We can just call it now?
+        # Yes, because we already verified the org condition.
+        
+        service.save_license(payload, json.dumps(license_full_obj))
+        
+        return {"status": "success", "message": "License updated successfully", "organization": new_org}
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"Error updating license: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -93,7 +93,7 @@ export default function LicenseGeneratorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card >
           <CardHeader>
-            <CardTitle>Configuration</CardTitle>
+            <CardTitle className="text-blue-900">Configuration</CardTitle>
             <CardDescription>Enter the license parameters.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -158,7 +158,7 @@ export default function LicenseGeneratorPage() {
 
               <div className="space-y-2">
                 <Label>Features</Label>
-                <div className="grid grid-cols-2 gap-2 border rounded-md p-3">
+                <div className="grid grid-cols-2 gap-2 border border-blue-100 rounded-md p-3 bg-blue-50/30">
                     {["sso", "audit-logs", "advanced-analytics", "custom-models", "api-access", "priority-support"].map((feature) => (
                         <div key={feature} className="flex items-center space-x-2">
                             <input 
@@ -182,7 +182,7 @@ export default function LicenseGeneratorPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
                 {isLoading ? (
                     <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -201,7 +201,7 @@ export default function LicenseGeneratorPage() {
 
         <Card className={generatedLicense ? "border-green-200 bg-green-50/10" : "opacity-50"}>
             <CardHeader>
-                <CardTitle>Generated License</CardTitle>
+                <CardTitle className="text-blue-900">Generated License</CardTitle>
                 <CardDescription>
                     {generatedLicense 
                         ? "License key generated successfully. Send this file to the client." 
@@ -219,11 +219,11 @@ export default function LicenseGeneratorPage() {
                             />
                         </div>
                         <div className="flex gap-2">
-                            <Button variant="outline" className="flex-1" onClick={copyToClipboard}>
+                            <Button variant="outline" className="flex-1 hover:text-blue-600 hover:border-blue-200" onClick={copyToClipboard}>
                                 <Copy className="mr-2 h-4 w-4" />
                                 Copy Key
                             </Button>
-                            <Button className="flex-1" onClick={downloadLicense}>
+                            <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={downloadLicense}>
                                 <Download className="mr-2 h-4 w-4" />
                                 Download File
                             </Button>

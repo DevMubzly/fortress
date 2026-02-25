@@ -84,12 +84,12 @@ const LicenseSheet = ({ isOpen, onClose }: LicenseSheetProps) => {
             const reader = new FileReader();
             reader.onload = () => {
                 const result = reader.result as string;
-                if (!result) return reject("Empty file");
-                const base64Content = result.split(",")[1];
-                resolve(base64Content);
+                // We send the raw text content. The backend handles if it needs decoding or parsing.
+                // Assuming the .lic file contains the license string (base64) directly.
+                resolve(result);
             };
             reader.onerror = reject;
-            reader.readAsDataURL(file);
+            reader.readAsText(file);
         });
 
         const res = await fetch(`${API_BASE}/system/license`, {
@@ -108,6 +108,7 @@ const LicenseSheet = ({ isOpen, onClose }: LicenseSheetProps) => {
             description: `${file.name} has been processed successfully.`,
         });
         refreshLicense(); // Refresh data
+        onClose();
     } catch (error: any) {
         toast({
             title: "Update Failed",
