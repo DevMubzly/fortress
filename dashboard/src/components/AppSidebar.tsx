@@ -189,7 +189,7 @@ const AppSidebar = () => {
                 key={item.id}
                 to={item.url}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 text-sm font-medium hover:bg-sidebar-accent rounded-lg",
+                  "flex items-center gap-3 px-3 py-2.5 text-sm font-medium hover:bg-sidebar-accent rounded-lg group relative",
                   isActiveRoute(item.url) && "text-primary bg-sidebar-accent"
                 )}
               >
@@ -198,6 +198,9 @@ const AppSidebar = () => {
                   isActiveRoute(item.url) ? "text-primary" : "text-muted-foreground"
                 )} />
                 <span className="whitespace-nowrap">{item.title}</span>
+                {item.id === 'model-hub' && activeDownloadCount > 0 && (
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full animate-pulse shadow-sm shadow-blue-500/50" />
+                )}
               </Link>
             )
           ))}

@@ -237,7 +237,12 @@ const ModelHubPage = () => {
                           <RotateCw className="w-3.5 h-3.5 animate-spin" />
                           {statusMsg === "Starting..." ? "Initializing..." : "Downloading..."}
                       </span>
-                      <span className="font-mono text-muted-foreground">{Math.round(progress)}%</span>
+                      <span className="font-mono text-muted-foreground">
+                        {dlState?.completed && dlState?.total ? 
+                            `${(dlState.completed / (1024 * 1024 * 1024)).toFixed(2)}GB / ${(dlState.total / (1024 * 1024 * 1024)).toFixed(2)}GB` 
+                            : ''
+                        } ({Math.round(progress)}%)
+                      </span>
                   </div>
                   <Progress value={progress} className="h-2 w-full bg-sidebar-primary/20" />
                   <div className="flex gap-2 justify-end pt-1">

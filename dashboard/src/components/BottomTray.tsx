@@ -215,6 +215,19 @@ const BottomTray = () => {
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.open("https://fortress-stack.com/docs/intro", "_blank")}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  <span>Documentation</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/support")}>
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  <span>Support Center</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCopyInfo}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  <span>Copy System Info</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setShowResetModal(true)} className="text-destructive focus:text-destructive">
                   <RotateCw className="mr-2 h-4 w-4" />
                   <span>Restart Onboarding</span>
