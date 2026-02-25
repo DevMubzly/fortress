@@ -100,35 +100,32 @@ const AppSidebar = () => {
       )}
     >
       {/* Header */}
-      <div className="p-3">
-        <div className="flex items-center gap-3 pb-3">
-          {isCollapsed ? (
-            <Button variant="ghost" size="icon" onClick={toggle} className="w-8 h-8 mx-auto">
-              <PanelLeft className="w-5 h-5 text-muted-foreground" />
+      <div className="p-2 pb-0">
+        {!isCollapsed ? (
+          <div className="flex items-center justify-between p-2">
+            <div className="flex items-center gap-2 overflow-hidden">
+               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+                  <Shield className="h-4 w-4" />
+               </div>
+               <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">Fortress</span>
+                  <span className="truncate text-xs text-muted-foreground">{license?.organization || "Enterprise"}</span>
+               </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={toggle} className="h-7 w-7 text-muted-foreground hover:text-foreground">
+                <PanelLeft className="h-4 w-4" />
             </Button>
-          ) : (
-            <>
-              <div className="p-1.5 rounded-lg">
-                <Logo size={20} />
+          </div>
+        ) : (
+           <div className="flex justify-center p-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <Shield className="h-4 w-4" />
               </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="font-bold font-persis text-sm tracking-wide whitespace-nowrap">Fortress</h1>
-                <p className="text-[10px] font-mono text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">
-                  {license?.organization || "Secure Workspace"}
-                </p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={toggle} className="w-8 h-8 shrink-0">
-                <PanelLeft className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </>
-          )}
-        </div>
-        <div className="mx-1">
-          <div className="h-px bg-sidebar-border" />
-        </div>
+           </div>
+        )}
       </div>
 
-      <div className="px-3 py-2">
+      <div className="px-3 py-2 mt-2">
         <Button
           variant="outline"
           className={cn(

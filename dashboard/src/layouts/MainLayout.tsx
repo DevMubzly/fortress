@@ -118,31 +118,28 @@ const MainContent = () => {
 
       <AppSidebar />
       
-      {/* Fixed Header - aligned with sidebar header */}
-      <header
-        className={cn(
-          "flex items-center justify-between px-4 lg:px-6 bg-background transition-all duration-300 shrink-0 pt-3 pb-3",
-          isCollapsed ? "ml-14" : "ml-64"
-        )}
-      >
-        <h1 className="text-sm font-medium font-persis text-foreground">{pageTitle}</h1>
-        <div className="flex items-center gap-4">
-            <NotificationCenter />
-        </div>
-      </header>
+      <div className={cn(
+        "flex-1 flex flex-col h-full transition-all duration-300",
+        isCollapsed ? "ml-14" : "ml-64"
+      )}>
+        {/* Fixed Header */}
+        <header className="flex items-center justify-between px-6 py-3 shrink-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
+            <h1 className="text-sm font-medium font-persis text-foreground">{pageTitle}</h1>
+            <div className="flex items-center gap-4">
+                <NotificationCenter />
+            </div>
+        </header>
 
-      {/* Main Content */}
-      <main
-        className={cn(
-          "transition-all duration-300 flex-1 overflow-hidden pb-6",
-          isCollapsed ? "ml-14" : "ml-64"
-        )}
-      >
-        <div className="p-6 lg:p-8 h-full overflow-y-auto">
-          <Outlet />
-        </div>
-      </main>
-      
+        {/* Main Content with rounded borders and spacing */}
+        <main className="flex-1 overflow-hidden p-2 pt-0 md:p-4 md:pt-0">
+            <div className="h-full w-full rounded-tl-2xl rounded-bl-none md:rounded-tl-3xl bg-card border border-border/50 shadow-sm overflow-hidden flex flex-col relative text-clip">
+                 <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+                    <Outlet />
+                 </div>
+            </div>
+        </main>
+      </div>
+
       <BottomTray />
     </div>
     </ProtectedRoute>

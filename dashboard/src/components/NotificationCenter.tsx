@@ -152,34 +152,4 @@ export function NotificationCenter() {
       </PopoverContent>
     </Popover>
   );
-}                                          size="sm" 
-                                          className="h-6 text-[10px] hover:bg-primary/10 hover:text-primary"
-                                          onClick={() => markAsRead(notification.id)}
-                                      >
-                                          Mark as read
-                                      </Button>
-                                   </div>
-                               )}
-                           </div>
-                           
-                           {/* Delete button (hover only) */}
-                           <Button
-                               variant="ghost"
-                               size="icon"
-                               className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                               onClick={(e) => {
-                                   e.stopPropagation();
-                                   removeNotification(notification.id);
-                               }}
-                           >
-                               <X className="h-3 w-3 text-muted-foreground" />
-                           </Button>
-                       </div>
-                   ))}
-               </div>
-           )}
-        </ScrollArea>
-      </SheetContent>
-    </Sheet>
-  );
 }

@@ -20,6 +20,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/ui/Logo";
 import { WelcomeModal } from "@/components/WelcomeModal";
 
 type SetupStep = 1 | 2 | 3 | 4;
@@ -477,20 +478,20 @@ const LoginPage = () => {
         // **********************
         <div className="w-full max-w-sm animate-in fade-in zoom-in-95 duration-500">
              <div className="text-center mb-8">
-                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-900/20 mb-4 ring-4 ring-blue-50">
-                    <Shield className="w-6 h-6" />
+                 <div className="mb-4 flex justify-center">
+                    <Logo size={48} />
                  </div>
                  <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Fortress AI</h1>
                  <p className="text-slate-500 text-sm mt-1 font-medium">Secure Workspace Access</p>
             </div>
             
-            <Card className="border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden">
+            <Card className="overflow-hidden border-none shadow-none bg-transparent">
                 <form onSubmit={handleLocalLogin}>
-                    <CardHeader className="space-y-1 pb-6 border-b border-slate-50 bg-slate-50/30">
+                    <CardHeader className="space-y-1 pb-6 px-0">
                         <CardTitle className="text-lg font-bold text-slate-800">Sign In</CardTitle>
                         <CardDescription className="text-slate-500 text-xs">Enter your credentials to verify identity.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-5 pt-6">
+                    <CardContent className="space-y-5 pt-0 px-0">
                         <div className="space-y-2">
                             <Label htmlFor="email" className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Username</Label>
                             <Input 
@@ -524,7 +525,7 @@ const LoginPage = () => {
                             </div>
                         </div>
                     </CardContent>
-                    <CardFooter className="pt-2 pb-6 px-6">
+                    <CardFooter className="pt-2 pb-6 px-0">
                         <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-10 shadow-md shadow-blue-500/20 font-semibold transition-all hover:scale-[1.01]" disabled={isLoading}>
                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                             {isLoading ? "Verifying..." : "Sign In"}

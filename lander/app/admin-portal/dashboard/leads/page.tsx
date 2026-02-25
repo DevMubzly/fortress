@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Inbox, Mail, Building2, CheckCircle, X, History, Trash2, RefreshCw } from "lucide-react";
+import { Inbox, Mail, Building2, CheckCircle, X, History, Trash2, RefreshCw, KeyRound } from "lucide-react";
+import { useRouter } from "next/navigation";
 // Removed unused icons: Calendar, MessageSquare, Clock, Archive, Eye
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +68,7 @@ const LeadInboxSkeleton = () => (
   );
 
 export default function LeadInboxPage() {
+  const router = useRouter();
   const { toast } = useToast();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -328,6 +330,15 @@ export default function LeadInboxPage() {
                             <div className="border-t  pt-6">
                                 <h4 className="text-sm font-semibold text-gray-900 mb-4">Quick Actions</h4>
                                 <div className="flex flex-wrap gap-3">
+                                    <Button variant="outline" size="sm" 
+                                        onClick={() => {
+                                            router.push(`/admin-portal/dashboard/license-generator?org=${encodeURIComponent(selectedLead.company_name)}&email=${encodeURIComponent(selectedLead.work_email)}`);
+                                        }}
+                                        className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
+                                    >
+                                        <KeyRound className="w-4 h-4 mr-2" />
+                                        Issue License
+                                    </Button>
                                     <Button variant="outline" size="sm" 
                                         onClick={() => handleStatusChange(selectedLead.id, 'qualified')}
                                         disabled={selectedLead.status === 'qualified'}

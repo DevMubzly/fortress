@@ -8,8 +8,51 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useLicense } from "@/contexts/LicenseContext";
+import { differenceInHours, differenceInMinutes, differenceInDays } from "date-fns";
 
 const API_BASE = "http://localhost:8000/api";
+
+const ExpiryCountdown = ({ expiryDate }: { expiryDate: string }) => {
+    const [timeLeft, setTimeLeft] = useState<{days: number, hours: number, minutes: number} | null>(null);
+
+    useEffect(() => {
+        const calculateTimeLeft = () => {
+            const now = new Date();
+            const expiry = new Date(expiryDate);
+            const diff = expiry.getTime() - now.getTime();
+            
+            if (diff <= 0) {
+                setTimeLeft(null);
+                return;
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            setTimeLeft({ days, hours, minutes });
+        };
+        
+        calculateTimeLeft();
+        const timer = setInterval(calculateTimeLeft, 60000); // Update every minute
+        return () => clearInterval(timer);
+    }, [expiryDate]);
+
+    if (!timeLeft) return <p className="text-sm font-semibold text-destructive">Expired</p>;
+
+    if (timeLeft.days > 3) {
+        return <p className="text-sm opacity-90">{timeLeft.days} days remaining until expiration.</p>;
+    }
+
+    return (
+        <div className="flex flex-col gap-1">
+             <p className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+                Expires in {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m
+             </p>
+             <p className="text-xs text-muted-foreground">Renew immediately to avoid interruption.</p>
+        </div>
+    );
+};
 
 // Use types from context if possible or keep local if simple matching
 // For now, mapping context data to local structure or using context directly
@@ -165,12 +208,15 @@ const LicenseSheet = ({ isOpen, onClose }: LicenseSheetProps) => {
             <statusConfig.icon className="w-5 h-5 mt-0.5 shrink-0" />
             <div className="space-y-1">
               <h3 className="font-semibold">{statusConfig.label}</h3>
-              {licenseData?.daysRemaining !== undefined && licenseData.daysRemaining >= 0 && (
-                 <p className="text-sm opacity-90">{licenseData.daysRemaining} days remaining until expiration.</p>
-              )}
-               {licenseData?.daysRemaining !== undefined && licenseData.daysRemaining < 0 && (
-                 <p className="text-sm opacity-90">License expired {Math.abs(licenseData.daysRemaining)} days ago.</p>
-              )}
+              {licenseData?.expiryDate ? (
+                  <ExpiryCountdown expiryDate={licenseData.expiryDate} />
+              ) : (licenseData?.daysRemaining !== undefined && (
+                  <p className="text-sm opacity-90">
+                    {licenseData.daysRemaining >= 0 
+                      ? `${licenseData.daysRemaining} days remaining until expiration.` 
+                      : `License expired ${Math.abs(licenseData.daysRemaining)} days ago.`}
+                  </p>
+              ))}
             </div>
           </div>
 

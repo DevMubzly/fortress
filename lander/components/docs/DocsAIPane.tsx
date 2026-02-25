@@ -22,10 +22,7 @@ export function DocsAIPane() {
   const [open, setOpen] = React.useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   
-  // Use Vercel AI SDK useChat
-  // @ts-ignore
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput, append } = useChat({
-    // @ts-ignore
     api: "/api/chat",
   });
 
@@ -234,7 +231,7 @@ export function DocsAIPane() {
               <Textarea
                 placeholder="Ask a question about Fortress..."
                 className="min-h-12.5 max-h-37.5 w-full resize-none py-3 px-4 bg-slate-50 focus-visible:ring-1 border-slate-200 rounded-xl shadow-inner"
-                value={input || ""}
+                value={input}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
               />

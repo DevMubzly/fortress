@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,11 +14,12 @@ import { Loader2, Download, Copy, RefreshCw } from "lucide-react";
 import { generateLicenseAction } from "@/app/actions/generate-license";
 
 export default function LicenseGeneratorPage() {
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [generatedLicense, setGeneratedLicense] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
-    organization: "",
+    organization: searchParams?.get("org") || "",
     tier: "enterprise",
     features: ["sso", "audit-logs", "advanced-analytics", "api-access"],
     maxUsers: "100",

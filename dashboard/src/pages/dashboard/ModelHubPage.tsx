@@ -14,7 +14,8 @@ import {
   Layers,
   Play,
   Pause,
-  Square
+  Square,
+  AlertCircle
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";

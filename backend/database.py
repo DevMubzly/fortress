@@ -114,9 +114,6 @@ def init_db():
         )
     ''')
 
-    conn.commit()
-    conn.close()
-
     # Create request_logs table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS request_logs (

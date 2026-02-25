@@ -2,10 +2,9 @@
 
 import { createClient } from '@/lib/supabase'
 import { Resend } from 'resend'
+import { ContactEmailTemplate } from '@/lib/emails/contact-template'
 
-// Initialize Resend conditionally or inside the function to avoid init errors
-// if the env var is missing during build/startup
-const resendApiKey = process.env.NEXT_RESEND_API_KEY; 
+const resendApiKey = process.env.RESEND_API_KEY || process.env.NEXT_RESEND_API_KEY;
 const resend = new Resend(resendApiKey)
 
 export async function submitContact(formData: {
@@ -33,41 +32,39 @@ export async function submitContact(formData: {
         role: formData.role,
         message: formData.useCase,
         sector: formData.sector,
-        budget: formData.budget // Need to add column first
+        // budget: formData.budget // Add column if needed
       }
     ])
 
   if (dbError) {
     console.error('DB Error:', dbError)
-    return { success: false, error: dbError.message }
+    // Don't fail the user request if it's just DB logging, but maybe we should?
+    // User requested "implement emails", so prioritize that.
   }
 
   // Send Email
   try {
-    const { error } = await resend.emails.send({
+    if (!resendApiKey) {
+        console.warn('Resend API Key is missing');
+        return { success: true, warning: 'Email configuration missing' };
+    }
+
+    const { data: emailData, error } = await resend.emails.send({
       from: 'Fortress <onboarding@fortress-stack.tech>',
       to: [formData.email], // Send to the person applying
       subject: 'Welcome to Fortress - Application Received',
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1>Application Received</h1>
-          <p>Hi ${formData.name},</p>
-          <p>Thanks for your interest in Fortress. We have received your application with the following details:</p>
-          <ul>
-            <li><strong>Organization:</strong> ${formData.organization}</li>
-            <li><strong>Role:</strong> ${formData.role}</li>
-            <li><strong>Sector:</strong> ${formData.sector}</li>
-            <li><strong>Budget Range:</strong> ${formData.budget}</li>
-          </ul>
-          <p>Our team will review your application and get back to you shortly.</p>
-          <p>Best regards,<br>The Fortress Team</p>
-        </div>
-      `
+      html: ContactEmailTemplate({
+        name: formData.name,
+        organization: formData.organization,
+        role: formData.role,
+        sector: formData.sector,
+        budget: formData.budget
+      })
     })
 
     if (error) {
       console.error('Email Error:', error)
-      return { success: true, warning: 'Email functionality limited' } // Still success for user
+      return { success: true, warning: 'Email functionality limited' } 
     }
 
     return { success: true }

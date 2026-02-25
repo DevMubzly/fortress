@@ -37,5 +37,6 @@ export async function POST(req: Request) {
     Answer the user's question clearly and helpfuly based on these facts.`,
   });
 
-  return result.toTextStreamResponse();
+  return result.toDataStreamResponse();
 }
+
