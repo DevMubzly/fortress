@@ -10,11 +10,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import LicenseSheet from "./LicenseSheet";
 import { Logo } from "@/components/ui/Logo";
@@ -129,8 +131,53 @@ const BottomTray = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("fortress_token");
+    navigate("/login");
+  };
+
+  const handleResetOnboarding = async () => {
+    try {
+        const res = await fetch("http://localhost:8000/api/setup/reset", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${localStorage.getItem("fortress_token")}` }
+        });
+        if (res.ok) {
+            handleLogout();
+            window.location.reload(); 
+        } else {
+             toast({ title: "Error", description: "Failed to reset system.", variant: "destructive" });
+        }
+    } catch (e) {
+        console.error("Reset failed", e);
+    }
+  };
+
+  const [showResetModal, setShowResetModal] = useState(false);
+
   return (
     <>
+      <Dialog open={showResetModal} onOpenChange={setShowResetModal}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle className="text-destructive flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Destructive Action: Reset System
+                </DialogTitle>
+                <DialogDescription>
+                    This will permanently delete all licenses, organization data, and user accounts.
+                    The application will be reset to its initial setup state.
+                    <br/><br/>
+                    <strong>Are you sure you want to proceed?</strong>
+                </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2 mt-4">
+                <Button variant="outline" onClick={() => setShowResetModal(false)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleResetOnboarding}>Yes, Reset Everything</Button>
+            </div>
+        </DialogContent>
+      </Dialog>
+      
       <div className="fixed bottom-0 left-0 right-0 h-6 bg-sidebar-background border-t border-border z-50">
         <div className="flex items-center justify-between h-full px-2">
           {/* Left side - Status Indicators */}
@@ -148,6 +195,10 @@ const BottomTray = () => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-44 mb-0.5">
+                <DropdownMenuItem className="gap-1.5 text-[10px] py-1" onClick={() => navigate('/profile')}>
+                  <User className="h-3 w-3" />
+                  Profile
+                </DropdownMenuItem>
                 <DropdownMenuItem className="gap-1.5 text-[10px] py-1" onClick={() => navigate('/support')}>
                   <HelpCircle className="h-3 w-3" />
                   Support
@@ -156,10 +207,16 @@ const BottomTray = () => {
                   <FileText className="h-3 w-3" />
                   Documentation
                 </DropdownMenuItem>
+                
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="gap-1.5 text-[10px] py-1" onClick={handleCopyInfo}>
-                  <Copy className="h-3 w-3" />
-                  Copy System Info
+                
+                <DropdownMenuItem className="gap-1.5 text-[10px] py-1 text-destructive hover:text-destructive focus:text-destructive" onClick={() => setShowResetModal(true)}>
+                  <RotateCw className="h-3 w-3" />
+                  Reset Onboarding
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-1.5 text-[10px] py-1" onClick={handleLogout}>
+                  <LogOut className="h-3 w-3" />
+                  Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

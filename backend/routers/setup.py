@@ -21,8 +21,35 @@ class SetupStatus(BaseModel):
     completed: bool
     step: int = 1
 
-@router.get("/status", response_model=SetupStatus)
-def get_setup_status():
+@router.post("/reset")
+def reset_system():
+    """
+    Destructive: Wipes all data to restart onboarding.
+    """
+    from backend.database import get_db_connection
+    import os
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Delete all tables content but keep structure? 
+        # Or better -> recreate tables?
+        # User said "deletes evrything entirely from the database"
+        
+        tables = ["users", "licenses", "sessions", "audit_logs", "api_keys", "downloaded_models", "config"]
+        for table in tables:
+            try:
+                cursor.execute(f"DELETE FROM {table}")
+            except Exception:
+                pass # Table might not exist
+        
+        conn.commit()
+        conn.close()
+        return {"status": "success", "message": "System reset complete"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     from backend.services.user_service import UserService
     from backend.services.license_service import LicenseService
     from backend.database import get_db_connection
@@ -46,6 +73,9 @@ def get_setup_status():
         return {"completed": False, "step": 2}
         
     return {"completed": False, "step": 1}
+
+@router.get("/status", response_model=SetupStatus)
+def get_setup_status():
 
 class LicenseUpload(BaseModel):
     file_content: str  # Base64 encoded

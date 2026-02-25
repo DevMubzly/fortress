@@ -41,7 +41,7 @@ interface Model {
   size: string;
   parameter_count: string;
   quantization: string;
-  status: 'installed' | 'downloading' | 'available';
+  status: 'installed' | 'downloading' | 'available' | 'error';
   description: string;
   tags: string[];
   download_progress?: number;
@@ -53,7 +53,7 @@ const ModelHubPage = () => {
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("installed");
+  const [activeTab, setActiveTab] = useState("all");
   const { startDownload, stopDownload, pauseDownload, resumeDownload, downloads } = useDownload();
   
   // Modal states
@@ -73,7 +73,7 @@ const ModelHubPage = () => {
                 if (dl) {
                     return { 
                         ...m, 
-                        status: dl.status === 'completed' ? 'installed' : 'downloading',
+                        status: dl.status === 'completed' ? 'installed' : dl.status === 'error' ? 'error' : 'downloading',
                         download_progress: dl.progress 
                     };
                 }
@@ -103,6 +103,13 @@ const ModelHubPage = () => {
     e?.stopPropagation();
     startDownload(modelId);
     toast({ title: "Download Started", description: `Pulling ${modelId} from Ollama registry...` });
+  };
+
+  const handleRetry = (modelId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    // Assuming retry is just starting download again
+    startDownload(modelId);
+    toast({ title: "Retrying Download", description: `Restarting pull for ${modelId}...` });
   };
 
   const handleLoadModel = async (modelId: string, e?: React.MouseEvent) => {
@@ -152,32 +159,23 @@ const ModelHubPage = () => {
                           m.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           m.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    if (activeTab === "installed") {
-        return matchesSearch && (m.status === "installed" || m.status === "downloading");
-    } else {
-        return matchesSearch; // In discover, show everything? Or just available?
-        // User requested: "when dowload is clicked, it should show installing while in the discover and installed area"
-        // So Discover should arguably show everything too, or at least available ones + downloading ones.
-        // Let's filter to show 'available' + 'downloading' (if not already installed)
-        // Actually, easiest is to show ALL in discover, but mark installed ones as installed.
-        // But traditional 'Discover' tabs usually hide installed ones.
-        // Let's stick to distinct lists for clarity, but show downloading in BOTH if possible.
-        // For now: Installed tab shows Installed + Downloading. Discover tab shows Available + Downloading (if originating from there).
-        // Actually, simpler logic:
-        if (m.status === 'installed') return false;
-        return matchesSearch;
+    if (activeTab === 'installed') {
+        return matchesSearch && (m.status === 'installed' || m.status === 'downloading' || m.status === 'error');
     }
+    return matchesSearch;
   });
 
   const ModelCard = ({ model }: { model: Model }) => {
     const dlState = downloads[model.id];
+    // Prioritize local dlState over server state for responsiveness
     const isDownloading = !!dlState || (model.status === 'downloading' && !dlState);
+    const isError = model.status === 'error' || dlState?.status === 'error';
     const progress = dlState?.progress || model.download_progress || 0;
-    const statusMsg = dlState?.status || "Starting...";
+    const statusMsg = dlState?.status || (isError ? "Download Failed" : "Starting...");
 
     return (
     <Card 
-        className={`flex flex-col h-full border-border/50 bg-secondary/10 hover:bg-secondary/20 transition-all duration-200 cursor-pointer ${isDownloading ? 'border-primary/50 bg-primary/5' : ''}`}
+        className={`flex flex-col h-full border-border/50 bg-secondary/10 hover:bg-secondary/20 transition-all duration-200 cursor-pointer group hover:shadow-md ${isDownloading ? 'border-primary/50 bg-primary/5' : ''} ${isError ? 'border-destructive/50 bg-destructive/5' : ''}`}
         onClick={() => {
             console.log("Card clicked", model);
             setSelectedModel(model);
@@ -185,73 +183,101 @@ const ModelHubPage = () => {
     >
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start gap-2">
-            <div>
-                <CardTitle className="text-lg font-bold flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+                <CardTitle className="text-lg font-bold flex items-center gap-2 truncate">
                    <span className="truncate" title={model.name}>{model.name}</span>
                    {model.status === 'installed' && <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />}
+                   {isError && <AlertCircle className="w-4 h-4 text-destructive shrink-0" />}
                 </CardTitle>
-                <CardDescription className="text-xs font-mono mt-1">
-                    {model.provider} • {model.parameter_count} • {model.quantization}
+                <CardDescription className="text-xs font-mono mt-1 text-muted-foreground/80 flex items-center gap-2">
+                    <span className="bg-background/50 px-1.5 py-0.5 rounded border border-border/50">{model.provider}</span>
+                    <span>•</span>
+                    <span>{model.parameter_count}</span>
+                    <span>•</span>
+                    <span>{model.quantization}</span>
                 </CardDescription>
             </div>
-            <Badge variant="outline" className="text-[10px] uppercase shrink-0">{model.size}</Badge>
+            <Badge variant={model.status === 'installed' ? 'default' : 'outline'} className="text-[10px] uppercase shrink-0 h-5 px-1.5">
+                {model.size}
+            </Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 pb-3">
-        <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px] mb-4">
+      <CardContent className="flex-1 pb-3 flex flex-col">
+        <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px] mb-4 group-hover:text-foreground transition-colors">
             {model.description}
         </p>
         
-        <div className="flex flex-wrap gap-1.5 mb-4">
-            {model.tags.map(tag => (
-                <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal bg-background/50">
+        <div className="flex flex-wrap gap-1.5 mb-4 mt-auto">
+            {model.tags.slice(0, 3).map(tag => (
+                <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal bg-background/50 text-muted-foreground">
                     #{tag}
                 </Badge>
             ))}
+            {model.tags.length > 3 && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal bg-background/50 text-muted-foreground">
+                    +{model.tags.length - 3}
+                </Badge>
+            )}
         </div>
 
-        {isDownloading && (
-            <div className="space-y-1.5 mt-auto bg-background/50 p-2 rounded-md" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
-                    <span className="truncate max-w-[120px]">{dlState?.isPaused ? "Paused" : statusMsg}</span>
-                    <span>{progress}%</span>
+        {(isDownloading || isError) && (
+            <div className="space-y-2 mt-auto bg-background/50 p-3 rounded-lg border border-border/50 shadow-sm" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between text-[11px] font-medium items-center">
+                    <span className={`truncate max-w-[120px] ${isError ? 'text-destructive' : 'text-primary'}`}>
+                        {isError ? "Download Failed" : dlState?.isPaused ? "Paused" : "Downloading..."}
+                    </span>
+                    <span className="text-muted-foreground">{Math.round(progress)}%</span>
                 </div>
-                <Progress value={progress} className={`h-1.5 ${dlState?.isPaused ? 'opacity-50' : ''}`} />
+                <Progress 
+                    value={progress} 
+                    className={`h-2 text-primary ${dlState?.isPaused ? 'opacity-50' : ''} ${isError ? 'bg-destructive/20' : ''}`} 
+                    indicatorClassName={isError ? 'bg-destructive' : ''}
+                />
+                 {isError && (
+                    <Button variant="ghost" size="sm" className="w-full h-6 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10 mt-1" onClick={(e) => handleRetry(model.id, e)}>
+                        Retry Download
+                    </Button>
+                 )}
             </div>
         )}
       </CardContent>
-      <CardFooter className="pt-0 mt-auto" onClick={(e) => e.stopPropagation()}>
+      <CardFooter className="pt-0 mt-auto border-t border-border/10 bg-black/5 dark:bg-white/5 p-3" onClick={(e) => e.stopPropagation()}>
         {model.status === 'installed' ? (
-             <div className="flex w-full gap-2">
-                 <Button variant="default" className="flex-1 h-8 text-xs gap-1.5" onClick={(e) => handleLoadModel(model.id, e)}>
+             <div className="flex w-full gap-2 transition-opacity opacity-70 group-hover:opacity-100">
+                 <Button variant="default" className="flex-1 h-8 text-xs gap-1.5 shadow-sm" onClick={(e) => handleLoadModel(model.id, e)}>
                     <Zap className="w-3.5 h-3.5" />
                     Load
                  </Button>
-                 <Button variant="outline" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setDeleteModelId(model.id)}>
+                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => setDeleteModelId(model.id)}>
                     <Trash2 className="w-3.5 h-3.5" />
                  </Button>
              </div>
         ) : isDownloading ? (
             <div className="flex w-full gap-2">
                 {dlState?.isPaused ? (
-                    <Button variant="secondary" className="flex-1 h-8 text-xs gap-1.5 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20" onClick={(e) => { e.stopPropagation(); resumeDownload(model.id); }}>
+                    <Button variant="outline" className="flex-1 h-8 text-xs gap-1.5 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/10" onClick={(e) => { e.stopPropagation(); resumeDownload(model.id); }}>
                         <Play className="w-3.5 h-3.5" />
                         Resume
                     </Button>
                 ) : (
-                    <Button variant="secondary" className="flex-1 h-8 text-xs gap-1.5" onClick={(e) => { e.stopPropagation(); pauseDownload(model.id); }}>
+                    <Button variant="outline" className="flex-1 h-8 text-xs gap-1.5" onClick={(e) => { e.stopPropagation(); pauseDownload(model.id); }}>
                         <Pause className="w-3.5 h-3.5" />
                         Pause
                     </Button>
                 )}
-                <Button variant="destructive" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); stopDownload(model.id); }}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); stopDownload(model.id); }}>
                     <Square className="w-3.5 h-3.5 fill-current" />
                 </Button>
             </div>
+        ) : isError ? (
+             <Button variant="default" className="w-full h-8 text-xs gap-1.5 bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={(e) => handleRetry(model.id, e)}>
+                <RotateCw className="w-3.5 h-3.5" />
+                Retry Download
+            </Button>
         ) : (
-            <Button variant="secondary" className="w-full h-8 text-xs gap-1.5 hover:bg-primary hover:text-primary-foreground" onClick={(e) => handleDownload(model.id, e)}>
+            <Button variant="secondary" className="w-full h-8 text-xs gap-1.5 hover:bg-primary hover:text-primary-foreground shadow-sm transition-all" onClick={(e) => handleDownload(model.id, e)}>
                 <Download className="w-3.5 h-3.5" />
-                Download
+                Download Model
             </Button>
         )}
       </CardFooter>
@@ -260,7 +286,7 @@ const ModelHubPage = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
       <PageHeader 
         className="mb-8"
         icon={Box} 
@@ -268,61 +294,58 @@ const ModelHubPage = () => {
         description="Discover, download, and manage AI models via Ollama library." 
       />
 
-      <div className="flex items-center gap-4 bg-background z-10 mb-6">
-        <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="flex flex-col sm:flex-row items-center gap-4 z-10 mb-8 sticky top-0 bg-background/95 backdrop-blur py-4 border-b">
+        <div className="relative flex-1 w-full max-w-md">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
-                placeholder="Search models..." 
-                className="pl-9 bg-secondary/30 border-border/50"
+                placeholder="Search models by name, tag, or description..." 
+                className="pl-9 bg-secondary/50 border-border/50 focus:bg-background transition-colors"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
             />
         </div>
-      </div>
-
-      <Tabs defaultValue="installed" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <div className="flex items-center justify-between mb-6">
-             <TabsList className="h-9 bg-secondary/30 p-1">
-                <TabsTrigger value="installed" className="px-4 text-xs h-7 data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                    <HardDrive className="w-3.5 h-3.5 mr-2" />
-                    Installed ({models.filter(m => m.status === 'installed' || m.status === 'downloading').length})
-                </TabsTrigger>
-                <TabsTrigger value="discover" className="px-4 text-xs h-7 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+        
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
+             <TabsList className="bg-secondary/50 p-1 w-full sm:w-auto grid grid-cols-2 sm:flex">
+                <TabsTrigger value="all" className="px-4 text-xs h-8 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                     <Sparkles className="w-3.5 h-3.5 mr-2" />
-                    Discover ({models.filter(m => m.status === 'available').length})
+                    All Models
+                </TabsTrigger>
+                <TabsTrigger value="installed" className="px-4 text-xs h-8 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <HardDrive className="w-3.5 h-3.5 mr-2" />
+                    Installed
+                    {models.filter(m => m.status === 'installed' || m.status === 'downloading').length > 0 && (
+                        <Badge variant="secondary" className="ml-2 h-4 px-1 text-[9px] min-w-[1.2rem] justify-center">
+                            {models.filter(m => m.status === 'installed' || m.status === 'downloading').length}
+                        </Badge>
+                    )}
                 </TabsTrigger>
             </TabsList>
-            
-            <div className="text-xs text-muted-foreground flex items-center gap-2 px-2">
-                <Layers className="w-3.5 h-3.5" />
-                {filteredModels.length} models found
+        </Tabs>
+      </div>
+
+      <div className="flex-1 pb-10">
+        {filteredModels.length === 0 ? (
+            <div className="h-64 flex flex-col items-center justify-center text-muted-foreground border border-dashed rounded-lg bg-secondary/5 mt-8">
+                <Box className="w-12 h-12 mb-4 opacity-20" />
+                <p className="text-lg font-medium text-foreground/80">No models found</p>
+                <p className="text-sm mt-1 text-muted-foreground/60 max-w-sm text-center">
+                    {searchQuery ? `No results matching "${searchQuery}"` : "No models are currently available."}
+                </p>
+                {searchQuery && (
+                    <Button variant="link" onClick={() => setSearchQuery("")} className="mt-2 text-primary">
+                        Clear Search
+                    </Button>
+                )}
             </div>
-        </div>
-
-        <TabsContent value="installed" className="mt-0 outline-none flex-1">
-            {filteredModels.length === 0 ? (
-                <div className="h-64 flex flex-col items-center justify-center text-muted-foreground border border-dashed rounded-lg bg-secondary/5 mt-8">
-                    <Box className="w-10 h-10 mb-3 opacity-20" />
-                    <p className="text-sm font-medium">No installed models found</p>
-                    <p className="text-xs mt-1 text-muted-foreground/60">Switch to the Discover tab to find new models.</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-8">
-                    {filteredModels.map(model => (
-                        <ModelCard key={model.id} model={model} />
-                    ))}
-                </div>
-            )}
-        </TabsContent>
-
-        <TabsContent value="discover" className="mt-0 outline-none flex-1">
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-8">
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredModels.map(model => (
                     <ModelCard key={model.id} model={model} />
                 ))}
             </div>
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
 
       {/* Model Details Modal */}
       <Dialog open={!!selectedModel} onOpenChange={(o) => !o && setSelectedModel(null)}>

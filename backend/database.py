@@ -99,6 +99,23 @@ def init_db():
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     ''')
+    
+    # Create downloaded_models table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS downloaded_models (
+            model_id TEXT PRIMARY KEY,
+            name TEXT,
+            provider TEXT,
+            size_mb INTEGER,
+            status TEXT, -- installed, downloading, error
+            progress INTEGER DEFAULT 0,
+            error_message TEXT,
+            installed_at TEXT
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
 
     # Create request_logs table
     cursor.execute('''

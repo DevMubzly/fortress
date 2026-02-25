@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import LoginPage from "./pages/auth/LoginPage";
 import OverviewPage from "./pages/dashboard/OverviewPage";
+import ProfilePage from "./pages/dashboard/ProfilePage";
 import AuditLogsPage from "./pages/dashboard/AuditLogsPage";
 import IdentityAccessPage from "./pages/dashboard/IdentityAccessPage";
 import SystemHealthPage from "./pages/dashboard/SystemHealthPage";
@@ -49,6 +50,7 @@ const App = () => (
               {/* Protected Routes with Main Layout */}
               <Route element={<MainLayout />}>
                 <Route path="/dashboard" element={<OverviewPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/monitoring" element={<MonitoringAnalyticsPage />} />
                 <Route path="/model-hub" element={<ModelHubPage />} />
                 <Route path="/apikeys" element={<ApiKeysPage />} />

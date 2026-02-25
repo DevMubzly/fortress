@@ -20,6 +20,8 @@ router = APIRouter(prefix="/models", tags=["models"])
 # Adjust if your Ollama runs elsewhere or in Docker
 OLLAMA_BASE_URL = settings.OLLAMA_BASE_URL
 
+from backend.database import get_db_connection
+
 # -----------------------------------------------------------------------------
 # Global Download Manager
 # -----------------------------------------------------------------------------
@@ -28,6 +30,55 @@ class DownloadManager:
         self.active_downloads: Dict[str, Dict] = {}
         self.clients: List[WebSocket] = []
         self._tasks: Dict[str, asyncio.Task] = {}
+        self._init_from_db()
+
+    def _init_from_db(self):
+        """Restore state from DB on startup"""
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM downloaded_models")
+            rows = cursor.fetchall()
+            conn.close()
+            
+            for row in rows:
+                if row['status'] == 'downloading':
+                    # If it was downloading when server stopped, mark as interrupted
+                    self._update_db_status(row['model_id'], 'error', error_message="Download interrupted by server restart")
+                elif row['status'] == 'installed':
+                     # We don't keep installed models in memory active_downloads, 
+                     # but we can query them for the list endpoint.
+                     pass
+        except Exception as e:
+            logger.error(f"Failed to init models from DB: {e}")
+
+    def _update_db_status(self, model_id, status, progress=0, error_message=None, size_mb=0):
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            # Upsert
+            cursor.execute("""
+                INSERT INTO downloaded_models (model_id, status, progress, error_message, installed_at, size_mb)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(model_id) DO UPDATE SET
+                    status=excluded.status,
+                    progress=excluded.progress,
+                    error_message=excluded.error_message,
+                    installed_at=excluded.installed_at,
+                    size_mb=excluded.size_mb
+            """, (
+                model_id, 
+                status, 
+                progress, 
+                error_message, 
+                datetime.utcnow().isoformat() if status == 'installed' else None,
+                size_mb
+            ))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.error(f"DB Update failed: {e}")
 
     async def broadcast_status(self):
         if not self.clients:
@@ -52,12 +103,9 @@ class DownloadManager:
         # Check if already downloading (active and not paused)
         if model_id in self.active_downloads:
             current = self.active_downloads[model_id]
-            if current['status'] != 'Paused' and current['status'] != 'Error' and current['status'] != 'Stopped':
+            if current['status'] not in ['Paused', 'Error', 'Stopped']:
                  return
             
-            # If resuming, keep success/total values?
-            # Ollama will figure it out, but UI needs reset to "Starting" or keep as is?
-            # Let's update status to resuming
             current['status'] = "Resuming..."
             current['isPaused'] = False
         else:
@@ -71,10 +119,9 @@ class DownloadManager:
                 "isPaused": False
             }
         
+        self._update_db_status(model_id, 'downloading', 0)
         await self.broadcast_status()
 
-        # Start background task
-        # Cancel existing if any (zombie task?)
         if model_id in self._tasks:
             self._tasks[model_id].cancel()
 
@@ -87,18 +134,20 @@ class DownloadManager:
             model_name = f"{model_name}:latest"
 
         try:
-            async with aiohttp.ClientSession() as session:
+            timeout = aiohttp.ClientTimeout(total=None) # No timeout for large files
+            async with aiohttp.ClientSession(timeout=timeout) as session:
                 payload = {"name": model_name, "stream": True}
                 async with session.post(f"{OLLAMA_BASE_URL}/api/pull", json=payload) as resp:
                     if resp.status != 200:
-                        self.active_downloads[model_id]['status'] = f"Error: {resp.status}"
+                        msg = f"Error: {resp.status}"
+                        self.active_downloads[model_id]['status'] = msg
+                        self._update_db_status(model_id, 'error', error_message=msg)
                         await self.broadcast_status()
                         return
 
                     buffer = ""
                     async for chunk in resp.content.iter_any():
                         if model_id not in self.active_downloads:
-                            # Download cancelled/stopped (removed from dict)
                             return 
                         
                         if self.active_downloads[model_id].get('isPaused'):
@@ -114,28 +163,30 @@ class DownloadManager:
                                     data = json.loads(line)
                                     status = data.get("status")
                                     
-                                    # Update internal state
                                     current = self.active_downloads[model_id]
                                     current['status'] = status
+                                    
+                                    progress = 0
+                                    total_mb = 0
                                     
                                     if data.get('total') and data.get('completed'):
                                         current['total'] = data.get('total')
                                         current['completed'] = data.get('completed')
                                         if data['total'] > 0:
-                                            current['progress'] = round((data['completed'] / data['total']) * 100)
+                                            progress = round((data['completed'] / data['total']) * 100)
+                                            current['progress'] = progress
+                                            total_mb = round(data['total'] / (1024*1024), 2)
                                     
                                     if status == 'success':
                                         current['progress'] = 100
                                         current['status'] = 'completed'
+                                        self._update_db_status(model_id, 'installed', 100, size_mb=total_mb)
                                         await self.broadcast_status()
-                                        
-                                        # Keep completed state briefly then remove? 
-                                        # Or keep it until client acknowledges?
-                                        # For persistent view, we might want to keep it until user dismisses.
-                                        # For now, let's keep it in "completed" state.
-                                        # Frontend can choose to hide or show "Done".
                                         return
 
+                                    # Only update DB periodically or on status change?
+                                    # For now, simplistic approach
+                                    # self._update_db_status(model_id, 'downloading', progress) 
                                     await self.broadcast_status()
                                     
                                 except json.JSONDecodeError:
@@ -143,11 +194,12 @@ class DownloadManager:
         except Exception as e:
             logger.error(f"Pull worker error: {e}")
             msg = str(e)
-            if "Connect call failed" in msg or "Connection refused" in msg or "10061" in msg or "Cannot connect to host" in msg:
-                 msg = "Ollama Unreachable. Is it running?"
+            if "Connect call failed" in msg or "Connection refused" in msg:
+                 msg = "Ollama Unreachable"
             
             if model_id in self.active_downloads:
                 self.active_downloads[model_id]['status'] = f"Error: {msg}"
+                self._update_db_status(model_id, 'error', error_message=msg)
                 await self.broadcast_status()
 
     def pause_pull(self, model_id: str):
@@ -158,7 +210,7 @@ class DownloadManager:
         if model_id in self.active_downloads:
             self.active_downloads[model_id]['isPaused'] = True
             self.active_downloads[model_id]['status'] = 'Paused'
-            # Need async loop for broadcast, use create_task
+            self._update_db_status(model_id, 'paused', self.active_downloads[model_id].get('progress', 0))
             asyncio.create_task(self.broadcast_status())
 
     def stop_pull(self, model_id: str):
@@ -166,15 +218,18 @@ class DownloadManager:
             self._tasks[model_id].cancel()
             del self._tasks[model_id]
         
-        # Keep it in active_downloads so UI knows it was cancelled/stopped?
-        # Or remove it entirely?
-        # User says "stopping is not working". Maybe they expect it to just STOP and disappear?
-        # If we remove it, the next broadcast sends downloads WITHOUT this ID.
-        # Frontend sees it missing -> removes from state.
         if model_id in self.active_downloads:
             del self.active_downloads[model_id]
+            # Remove from DB? or mark as stopped?
+            # Remove from DB if cancelled completely
+            try:
+                conn = get_db_connection()
+                conn.execute("DELETE FROM downloaded_models WHERE model_id = ?", (model_id,))
+                conn.commit()
+                conn.close()
+            except:
+                pass
         
-        # Broadcast immediately
         asyncio.create_task(self.broadcast_status())
 
 manager = DownloadManager()
@@ -322,65 +377,144 @@ CURATED_MODELS = [
 # -----------------------------------------------------------------------------
 
 @router.get("")
-async def get_all_models():
+async def list_models():
     """
-    Returns discovered models + installed models merged.
+    Returns curated models with status merged from DB/Ollama
     """
-    installed = []
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"{OLLAMA_BASE_URL}/api/tags") as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    installed = data.get("models", [])
-                else:
-                    logger.error(f"Ollama tags failed: {resp.status}")
+        # 1. Get real installed models from Ollama (source of truth for running)
+        installed = []
+        try:
+            timeout = aiohttp.ClientTimeout(total=2.0)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(f"{OLLAMA_BASE_URL}/api/tags") as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        installed = data.get("models", [])
+        except:
+            pass
+
+        # Normalize installed names
+        installed_map = {}
+        for m in installed:
+            name = m['name']
+            if ':' not in name: name += ":latest"
+            installed_map[name] = m
+            # Also map short name if unique?
+            short = name.split(':')[0]
+            if short not in installed_map: installed_map[short] = m
+
+        # 2. Get DB status
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM downloaded_models")
+            db_models = {row['model_id']: dict(row) for row in cursor.fetchall()}
+            conn.close()
+        except:
+            db_models = {}
+
+        results = []
+        
+        # 3. Process Curated List
+        for m in CURATED_MODELS:
+            model_id = m['id']
+            full_id = f"{model_id}:latest" # normalization assumption
+            
+            # Default state
+            status = 'available'
+            progress = 0
+            size = m.get('size_range', 'Unknown')
+            
+            # Check Active Memory (most recent)
+            if model_id in manager.active_downloads:
+                status = 'downloading'
+                progress = manager.active_downloads[model_id].get('progress', 0)
+                if manager.active_downloads[model_id]['status'].startswith('Error'):
+                     status = 'error'
+            
+            # Check DB (persistence)
+            elif model_id in db_models:
+                row = db_models[model_id]
+                db_stat = row['status']
+                if db_stat == 'installed':
+                     status = 'installed'
+                     # Use DB size if available
+                     if row['size_mb']: size = f"{row['size_mb']} MB"
+                elif db_stat == 'downloading':
+                     status = 'downloading'
+                     progress = row['progress']
+                elif db_stat == 'error':
+                     status = 'error'
+
+            # Check Ollama Real State (Ultimate Truth for Installed)
+            if model_id in installed_map or full_id in installed_map:
+                status = 'installed'
+                # Update size from real
+                real_m = installed_map.get(model_id) or installed_map.get(full_id)
+                if real_m:
+                    bytes_size = real_m.get('size', 0)
+                    if bytes_size > 1024**3:
+                        size = f"{round(bytes_size / (1024**3), 2)} GB"
+                    else:
+                        size = f"{round(bytes_size / (1024**2), 0)} MB"
+
+            results.append({
+                "id": model_id,
+                "name": m["name"],
+                "provider": m["provider"],
+                "size": size,
+                "parameter_count": m["versions"][-1].upper(), 
+                "quantization": "4-bit (Default)", # simplified
+                "status": status,
+                "description": m["description"],
+                "tags": m["tags"],
+                "download_progress": progress
+            })
+
+        # 4. Add unknown installed models
+        curated_ids = [c['id'] for c in CURATED_MODELS]
+        for name, data in installed_map.items():
+            base = name.split(':')[0]
+            if base in curated_ids or name in curated_ids:
+                continue
+            
+            # Verify we haven't added it yet (due to multiple mappings)
+            if any(r['id'] == name for r in results): continue
+
+            bytes_size = data.get('size', 0)
+            size_str = f"{round(bytes_size / (1024**3), 2)} GB"
+
+            results.append({
+                "id": name,
+                "name": name,
+                "provider": "Local",
+                "size": size_str,
+                "parameter_count": "?",
+                "quantization": data.get('details', {}).get('quantization_level', '?'),
+                "status": "installed",
+                "description": "Locally installed model",
+                "tags": ["local"],
+                "download_progress": 100
+            })
+
+        return results
     except Exception as e:
-        # Avoid spamming logs for connection errors if Ollama is down
-        if "Cannot connect to host" not in str(e):
-             logger.error(f"Ollama connection failed: {e}")
-        
-    discovery_list = []
-    
-    # Process Curated Models into a flat list for the UI
-    for m in CURATED_MODELS:
-        # Check against installed to update status
-        is_installed = any(inst['name'].startswith(m['id']) for inst in installed)
-        
-        discovery_list.append({
+        logger.error(f"List models error: {e}")
+        # Fallback to curated only
+        return [{
             "id": m["id"],
             "name": m["name"],
             "provider": m["provider"],
             "size": m["size_range"],
-            "parameter_count": m["versions"][-1].upper(), # approximate
+            "parameter_count": "Unknown",
             "quantization": "Unknown",
-            "status": "installed" if is_installed else "available",
+            "status": "available",
             "description": m["description"],
             "tags": m["tags"],
-            "download_progress": 0 if not is_installed else 100
-        })
+            "download_progress": 0
+        } for m in CURATED_MODELS]
 
-    # Also include installed models that might differ from our curated list
-    final_list = list(discovery_list)
-    installed_names_in_curated = [c['id'] for c in CURATED_MODELS]
-    
-    for inst in installed:
-        base_name = inst['name'].split(':')[0]
-        if base_name not in installed_names_in_curated:
-            final_list.append({
-                "id": inst['name'],
-                "name": inst['name'],
-                "provider": "Local / Custom",
-                "size": f"{round(inst['size'] / (1024**3), 2)} GB",
-                "parameter_count": "Unknown",
-                "quantization": inst.get('details', {}).get('quantization_level', 'Unknown'),
-                "status": "installed",
-                "description": "Locally installed model via Ollama",
-                "tags": ["local", "installed"],
-                "download_progress": 100
-            })
-
-    return final_list
 
 @router.delete("/{model_id}")
 async def delete_model(model_id: str):
