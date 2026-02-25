@@ -201,21 +201,8 @@ const BottomTray = () => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" side="top" className="w-56" sideOffset={0}>
-                <div className="flex items-center gap-2 p-2">
-                  <div className="h-8 w-8 rounded-full bg-sidebar-primary/10 flex items-center justify-center text-sidebar-primary">
-                    <User className="h-4 w-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">{currentUser?.full_name || "User"}</span>
-                    <span className="text-xs text-muted-foreground">{currentUser?.email || "user@example.com"}</span>
-                  </div>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.open("https://fortress-stack.com/docs/intro", "_blank")}>
+                {/* <DropdownMenuSeparator /> */}
+                <DropdownMenuItem onClick={() => window.open("https://fortress-stack.tech/docs/intro", "_blank")}>
                   <FileText className="mr-2 h-4 w-4" />
                   <span>Documentation</span>
                 </DropdownMenuItem>
@@ -227,16 +214,7 @@ const BottomTray = () => {
                   <Copy className="mr-2 h-4 w-4" />
                   <span>Copy System Info</span>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setShowResetModal(true)} className="text-destructive focus:text-destructive">
-                  <RotateCw className="mr-2 h-4 w-4" />
-                  <span>Restart Onboarding</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
+                {/* <DropdownMenuSeparator /> */}
               </DropdownMenuContent>
             </DropdownMenu>
 

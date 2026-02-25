@@ -15,7 +15,8 @@ import {
   Trash2,
   RefreshCw,
   MoreVertical,
-  Edit2
+  Edit2,
+  Key
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -59,6 +60,7 @@ const ChatPage = () => {
   const [editingChat, setEditingChat] = useState<ChatConversation | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const [showKeyDialog, setShowKeyDialog] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput, append, setMessages } = useChat({
@@ -308,8 +310,18 @@ const ChatPage = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-background">
-        {/* Header removed as requested, keeping it clean */}
+      <div className="flex-1 flex flex-col min-w-0 bg-background relative">
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+           <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowKeyDialog(true)} 
+                className={cn("gap-2 text-xs h-8", apiKey ? "border-green-500/50 text-green-600 hover:text-green-700 bg-green-50/50" : "text-muted-foreground")}
+           >
+                <Key className="w-3 h-3" />
+                {apiKey ? "API Connected" : "Set API Key"}
+           </Button>
+        </div>
         
         <ScrollArea className="flex-1 p-4 md:p-6" ref={scrollRef}>
            <div className="max-w-3xl mx-auto space-y-6 pb-4">
@@ -389,43 +401,17 @@ const ChatPage = () => {
                  )}
               </div>
               
-              { !apiKey ? (
-                 <div className="flex flex-col gap-2 p-3 border rounded-md bg-muted/20">
-                     <div className="flex items-center justify-between">
-                        <Label className="text-xs font-semibold">API Key Required</Label>
-                     </div>
-                     <p className="text-[10px] text-muted-foreground">Please enter an API Key from your dashboard to continue.</p>
-                     <div className="flex gap-2">
-                         <Input 
-                            placeholder="sk-..." 
-                            className="flex-1 h-8 text-xs" 
-                            type="password"
-                            id="api-key-manual-input"
-                         />
-                         <Button 
-                            size="sm" 
-                            className="h-8 text-xs"
-                            onClick={() => {
-                                const el = document.getElementById('api-key-manual-input') as HTMLInputElement;
-                                if(el && el.value) handleSetApiKey(el.value);
-                            }}
-                         >
-                            Save Key
-                         </Button>
-                     </div>
-                 </div>
-              ) : (
-              <div className="flex gap-3 relative">
-                 <div className="absolute -top-8 right-0">
-                     <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={handleRemoveApiKey} 
-                        className="h-6 px-2 text-[10px] text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                     >
-                        Remove Key
-                     </Button>
-                 </div>
+              <div className="relative">
+                { !apiKey && (
+                    <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-20 flex flex-col items-center justify-center rounded-lg border border-dashed">
+                        <div className="text-sm font-medium mb-2 text-muted-foreground">API Connection Required</div>
+                        <Button onClick={() => setShowKeyDialog(true)} size="sm" variant="secondary" className="gap-2 h-8 text-xs">
+                            <Key className="w-3 h-3" />
+                            Connect API Key
+                        </Button>
+                    </div>
+                )}
+                <div className={cn("flex gap-3 relative transition-opacity duration-300", !apiKey && "opacity-20 pointer-events-none")}>
                  <Textarea 
                     value={input}
                     onChange={handleInputChange}

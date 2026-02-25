@@ -127,10 +127,10 @@ export default function ContactSalesModal() {
     // const result = { success: true };
 
     if (!result.success) {
-        console.error("Error submitting lead:", result.error);
+        console.error("Error submitting lead:", result.warning);
         toast({
             title: "Submission Failed",
-            description: "There was an error submitting your request. Please try again.",
+            description: result.warning || "There was an error submitting your request. Please try again.",
             variant: "destructive"
         });
         setIsSubmitting(false);
