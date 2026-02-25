@@ -76,6 +76,7 @@ def reset_system():
 
 @router.get("/status", response_model=SetupStatus)
 def get_setup_status():
+    return check_setup_status()
 
 class LicenseUpload(BaseModel):
     file_content: str  # Base64 encoded

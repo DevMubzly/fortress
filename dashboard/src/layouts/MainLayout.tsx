@@ -131,9 +131,9 @@ const MainContent = () => {
         </header>
 
         {/* Main Content with rounded borders and spacing */}
-        <main className="flex-1 overflow-hidden p-2 pt-0 md:p-4 md:pt-0">
-            <div className="h-full w-full rounded-tl-2xl rounded-bl-none md:rounded-tl-3xl bg-card border border-border/50 shadow-sm overflow-hidden flex flex-col relative text-clip">
-                 <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-hidden p-2 pt-0 md:p-4 md:pt-0 pb-16 md:pb-16">
+            <div className="h-full w-full rounded-tl-2xl rounded-bl-none md:rounded-tl-3xl bg-card border border-border/50 shadow-sm overflow-hidden flex flex-col relative text-clip mb-6">
+                 <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-32">
                     <Outlet />
                  </div>
             </div>

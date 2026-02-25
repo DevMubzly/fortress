@@ -95,7 +95,7 @@ const AppSidebar = () => {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 bottom-6 bg-sidebar border-r border-border/30 flex flex-col z-50 transition-all duration-300",
+        "fixed left-0 top-0 bottom-6 bg-sidebar flex flex-col z-50 transition-all duration-300",
         isCollapsed ? "w-14" : "w-64"
       )}
     >
