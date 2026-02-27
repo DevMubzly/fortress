@@ -83,7 +83,26 @@ def reset_system():
 
 @router.get("/status", response_model=SetupStatus)
 def get_setup_status():
-    return check_setup_status()
+    from backend.services.user_service import UserService
+    from backend.services.license_service import LicenseService
+    from backend.database import get_db_connection
+
+    user_svc = UserService()
+    license_svc = LicenseService()
+
+    has_users = user_svc.has_any_users()
+    has_license = license_svc.get_license() is not None
+
+    if has_users and has_license:
+        return {"completed": True, "step": 5}
+    
+    if not has_users:
+        return {"completed": False, "step": 1}
+    
+    if not has_license:
+        return {"completed": False, "step": 2}
+        
+    return {"completed": False, "step": 1}
 
 class LicenseUpload(BaseModel):
     file_content: str  # Base64 encoded
